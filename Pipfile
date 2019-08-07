@@ -4,8 +4,9 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
-pre-commit = "*"
 black = "==19.3b0"
+jsonschema = "*"
+pre-commit = "*"
 pylint = "*"
 pyroma = "*"
 pytest = "*"
