@@ -11,5 +11,6 @@ install:
 script:
   - isort -c
   - black --check .
+  - pyroma .
   - pylint --rcfile=setup.cfg collect_stata tests
   - pytest -rf
