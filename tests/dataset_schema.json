@@ -1,0 +1,96 @@
+{
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "study": {
+        "type": "string"
+      },
+      "dataset": {
+        "type": "string"
+      },
+      "name": {
+        "type": "string"
+      },
+      "label": {
+        "type": "string"
+      },
+      "label_de": {
+        "type": "string"
+      },
+      "scale": {
+        "type": "string"
+      },
+      "statistics": {
+        "type": "object",
+        "properties": {
+          "Min.": {
+            "type": "number"
+          },
+          "1st Qu.": {
+            "type": "number"
+          },
+          "Median": {
+            "type": "number"
+          },
+          "Mean": {
+            "type": "number"
+          },
+          "3rd Qu.": {
+            "type": "number"
+          },
+          "Max": {
+            "type": "number"
+          },
+          "valid": {
+            "type": "number"
+          },
+          "invalid": {
+            "type": "number"
+          }
+        }
+      },
+      "categories": {
+        "type": "object",
+        "properties": {
+          "values": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "missings": {
+            "type": "array",
+            "items": {
+              "type": "boolean"
+            }
+          },
+          "frequencies": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "labels_de": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "required": [
+      "study",
+      "dataset",
+      "name",
+      "label"
+    ]
+  }
+}
