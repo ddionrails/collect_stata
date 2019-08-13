@@ -28,4 +28,4 @@ def stata_to_json(study_name, input_path, output_path):
             print("[ERROR]: file not found")
             continue
 
-        dataset_1.write_json(output_path + fname + ".json", study=study_name)
+        dataset_1.write_json(output_path + "/" + fname + ".json", study=study_name)

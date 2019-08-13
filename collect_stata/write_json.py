@@ -63,10 +63,10 @@ def uni_cat(elem, file_csv):
         var_value = str(value["value"])
 
         if int(value["value"]) >= 0 and var_value not in stata_missings:
-            missings.append("false")
+            missings.append(False)
             values.append(var_value)
         else:
-            missings.append("true")
+            missings.append(True)
             if var_value in stata_missings:
                 values.append(stata_missings[var_value])
             else:
