@@ -13,4 +13,4 @@ script:
   - black --check .
   - pyroma .
   - pylint --rcfile=setup.cfg collect_stata tests
-  - pytest -rf
+  - pytest -rf --cov
