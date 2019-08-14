@@ -48,7 +48,11 @@
           "invalid": {
             "type": "number"
           }
-        }
+        },
+        "required": [
+          "valid",
+          "invalid"
+        ]
       },
       "categories": {
         "type": "object",
