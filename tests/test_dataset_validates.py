@@ -18,7 +18,6 @@ def test_dataset_validates(tmpdir, dataset_schema: Dict):
     )
 
     with open(path.join(output_path, "test.json")) as json_file:
-        data = json.load(json_file)
+        result = json.load(json_file)
 
-    result = data
     validate(instance=result, schema=dataset_schema)

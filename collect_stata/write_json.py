@@ -9,7 +9,7 @@ import pandas as pd
 
 
 def sorting_dataframe(values, labels, missings, frequencies):
-    """Method to sort values and labels and return sorted dict"""
+    """Function to sort values and labels and return sorted dict"""
     dataframe = pd.DataFrame(
         {
             "values": values,
@@ -60,7 +60,7 @@ def uni_cat(elem, file_csv):
             frequencies.append(0)
         labels.append(value["label"])
 
-        var_value = str(value["value"])
+        var_value = value["value"]
 
         if int(value["value"]) >= 0 and var_value not in stata_missings:
             missings.append(False)
@@ -98,17 +98,10 @@ def uni_number():
     """Generate dict with frequencies for numerical variables
 
     Output:
-    number_dict: OrderedDict
+    OrderedDict
     """
-    number_dict = OrderedDict()
 
-    number_dict["frequencies"] = []
-    number_dict["labels"] = []
-    number_dict["missings"] = []
-    number_dict["values"] = []
-    number_dict["labels_de"] = []
-
-    return number_dict
+    return OrderedDict(frequencies=[], labels=[], labels_de=[], missings=[], values=[])
 
 
 def stats_cat(elem, file_csv):
@@ -119,11 +112,8 @@ def stats_cat(elem, file_csv):
     file_csv: pandas DataFrame
 
     Output:
-    statistics: OrderedDict
+    dict
     """
-
-    names = ["valid", "invalid"]
-    values = []
 
     total = int(file_csv[elem["name"]].size)
     invalid = int(file_csv[elem["name"]].isnull().sum()) + int(
@@ -131,14 +121,7 @@ def stats_cat(elem, file_csv):
     )
     valid = total - invalid
 
-    value_names = [valid, invalid]
-
-    for value_name in value_names:
-        values.append(str(value_name))
-
-    statistics = OrderedDict([("names", names), ("values", values)])
-
-    return statistics
+    return {"valid": valid, "invalid": invalid}
 
 
 def stats_string(elem, file_csv):
@@ -149,13 +132,9 @@ def stats_string(elem, file_csv):
     file_csv: pandas DataFrame
 
     Output:
-    statistics: OrderedDict
+    dict
     """
 
-    names = ["valid", "invalid"]
-    values = []
-
-    int(file_csv[elem["name"]].size)
     valid = int(file_csv[elem["name"]].value_counts().sum())
     invalid = int(file_csv[elem["name"]].isnull().sum())
     for i in file_csv[elem["name"]]:
@@ -163,14 +142,7 @@ def stats_string(elem, file_csv):
             valid = valid - 1
             invalid = invalid + 1
 
-    value_names = [valid, invalid]
-
-    for value_name in value_names:
-        values.append(str(value_name))
-
-    statistics = OrderedDict([("names", names), ("values", values)])
-
-    return statistics
+    return {"valid": valid, "invalid": invalid}
 
 
 def stats_number(elem, file_csv):
@@ -184,37 +156,32 @@ def stats_number(elem, file_csv):
     statistics: OrderedDict
     """
 
-    data_wm = file_csv[file_csv[elem["name"]] >= 0][elem["name"]]
+    data_withoutmissings = file_csv[file_csv[elem["name"]] >= 0][elem["name"]]
 
     names = ["Min.", "1st Qu.", "Median", "Mean", "3rd Qu.", "Max.", "valid", "invalid"]
     values = []
 
-    mid = int(len(sorted(data_wm)) / 2)
-    first_q = np.median(sorted(data_wm)[:mid])
-    if len(sorted(data_wm)) % 2 == 0:
-        third_q = np.median(sorted(data_wm)[mid:])
-    else:
-        third_q = np.median(sorted(data_wm)[mid + 1 :])
+    first_q, third_q = np.quantile(data_withoutmissings, [0.25, 0.75])
 
-    total = int(file_csv[elem["name"]].size)
+    total = file_csv[elem["name"]].size
     invalid = int(file_csv[elem["name"]].isnull().sum()) + int(
         sum(n < 0 for n in file_csv[elem["name"]])
     )
     valid = total - invalid
 
     value_names = [
-        min(data_wm),
+        min(data_withoutmissings),
         first_q,
-        np.median(data_wm),
-        np.mean(data_wm),
+        np.median(data_withoutmissings),
+        np.mean(data_withoutmissings),
         third_q,
-        max(data_wm),
+        max(data_withoutmissings),
         valid,
         invalid,
     ]
 
     for value_name in value_names:
-        values.append(str(value_name))
+        values.append(float(value_name))
 
     statistics = OrderedDict([("names", names), ("values", values)])
 
@@ -304,7 +271,7 @@ def stat_dict(elem, file_csv, file_json, study):
     meta_dict = OrderedDict()
 
     meta_dict["study"] = study
-    meta_dict["dataset"] = file_json["name"].lower()
+    meta_dict["dataset"] = file_json["name"]
     meta_dict["name"] = elem["name"]
     meta_dict["label"] = elem["label"]
     meta_dict["scale"] = scale
@@ -313,8 +280,8 @@ def stat_dict(elem, file_csv, file_json, study):
     # For 10 or less values the statistics aren't shown.
 
     if elem["type"] == "number" or elem["type"] == "cat":
-        data_wm = file_csv[file_csv[elem["name"]] >= 0][elem["name"]]
-        if sum(Counter(data_wm.values).values()) > 10:
+        data_withoutmissings = file_csv[file_csv[elem["name"]] >= 0][elem["name"]]
+        if sum(Counter(data_withoutmissings.values).values()) > 10:
             meta_dict["statistics"] = uni_statistics(elem, file_csv)
     else:
         meta_dict["statistics"] = uni_statistics(elem, file_csv)
@@ -344,10 +311,7 @@ def generate_stat(data, metadata, study):
     for elem in elements:
         print(str(i) + "/" + str(elements_length))
         i = i + 1
-        try:
-            stat.append(stat_dict(elem, data, metadata, study))
-        except KeyError as exception:
-            print(exception)
+        stat.append(stat_dict(elem, data, metadata, study))
 
     return stat
 

@@ -4,15 +4,14 @@ __author__ = "Marius Pahl"
 import logging
 import re
 
-import numpy as np
 import pandas as pd
 
 LOGGER = logging.getLogger(__name__)
 
 
-def cat_values(var, varscale, datatable, data):
+def cat_values(varscale, data):
     """
-    Extrat categorical metadata from stata files
+    Extract categorical metadata from stata files
 
     Input:
     var: string
@@ -25,12 +24,6 @@ def cat_values(var, varscale, datatable, data):
     """
 
     cat_list = list()
-
-    df_nomis = datatable[var].copy()
-
-    for index, value in enumerate(df_nomis):
-        if not isinstance(value, str) and value < 0:
-            df_nomis[index] = np.nan
 
     label_dict = data.value_labels()
 
@@ -99,17 +92,13 @@ def generate_tdp(datatable, dta_file, data):
         scale = scale_var(var, varscale, datatable)
         meta = dict(name=var, label=varlabels[var], type=scale)
         if scale == "cat":
-            meta["values"] = cat_values(var, varscale, datatable, data)
+            meta["values"] = cat_values(varscale, data)
 
         fields.append(meta)
 
-    schema = {}
+    schema = dict(fields=fields)
 
-    schema.update(fields=fields)
-
-    resources = []
-
-    resources.append(dict(path=dta_file, schema=schema))
+    resources = [dict(path=dta_file, schema=schema)]
 
     tdp.update(dict(name=dataset_name, resources=resources))
 
