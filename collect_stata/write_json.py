@@ -40,18 +40,6 @@ def uni_cat(elem, file_csv):
     missings = []
     labels = []
 
-    stata_missings = {
-        "4294967287": "-9",
-        "4294967288": "-8",
-        "4294967289": "-7",
-        "4294967290": "-6",
-        "4294967291": "-5",
-        "4294967292": "-4",
-        "4294967293": "-3",
-        "4294967294": "-2",
-        "4294967295": "-1",
-    }
-
     value_count = file_csv[elem["name"]].value_counts()
     for value in elem["values"]:
         try:
@@ -62,15 +50,12 @@ def uni_cat(elem, file_csv):
 
         var_value = value["value"]
 
-        if int(value["value"]) >= 0 and var_value not in stata_missings:
+        if int(value["value"]) >= 0:
             missings.append(False)
             values.append(var_value)
         else:
             missings.append(True)
-            if var_value in stata_missings:
-                values.append(stata_missings[var_value])
-            else:
-                values.append(var_value)
+            values.append(var_value)
 
     cat_dict = sorting_dataframe(values, labels, missings, frequencies)
 
@@ -158,9 +143,6 @@ def stats_number(elem, file_csv):
 
     data_withoutmissings = file_csv[file_csv[elem["name"]] >= 0][elem["name"]]
 
-    names = ["Min.", "1st Qu.", "Median", "Mean", "3rd Qu.", "Max.", "valid", "invalid"]
-    values = []
-
     first_q, third_q = np.quantile(data_withoutmissings, [0.25, 0.75])
 
     total = file_csv[elem["name"]].size
@@ -169,23 +151,16 @@ def stats_number(elem, file_csv):
     )
     valid = total - invalid
 
-    value_names = [
-        min(data_withoutmissings),
-        first_q,
-        np.median(data_withoutmissings),
-        np.mean(data_withoutmissings),
-        third_q,
-        max(data_withoutmissings),
-        valid,
-        invalid,
-    ]
-
-    for value_name in value_names:
-        values.append(float(value_name))
-
-    statistics = OrderedDict([("names", names), ("values", values)])
-
-    return statistics
+    return {
+        "Min.": min(data_withoutmissings),
+        "1st Qu.": float(first_q),
+        "Median": float(np.median(data_withoutmissings)),
+        "Mean": float(np.mean(data_withoutmissings)),
+        "3rd Qu.": float(third_q),
+        "Max.": max(data_withoutmissings),
+        "valid": valid,
+        "invalid": invalid,
+    }
 
 
 def uni_statistics(elem, file_csv):
