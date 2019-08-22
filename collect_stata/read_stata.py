@@ -2,6 +2,7 @@
 __author__ = "Marius Pahl"
 
 import logging
+import pathlib
 import re
 
 import pandas as pd
@@ -14,9 +15,7 @@ def cat_values(varscale, data):
     Extract categorical metadata from stata files
 
     Input:
-    var: string
     varscale: dict
-    datatable: pandas DataFrame
     data: pandas StataReader
 
     Output:
@@ -62,13 +61,13 @@ def scale_var(var, varscale, datatable):
     return var_type
 
 
-def generate_tdp(datatable, dta_file, data):
+def generate_tdp(datatable, stata_name, data):
     """
     Generate tabular data package file
 
     Input:
     datatable: pandas DataFrame
-    dta_file: string
+    stata_name: string
     data: pandas StataReader
 
     Output:
@@ -83,7 +82,7 @@ def generate_tdp(datatable, dta_file, data):
         dict(name=varscale, sn=number) for number, varscale in enumerate(data.lbllist)
     ]
 
-    dataset_name = re.sub(".dta", "", dta_file)
+    dataset_name = pathlib.Path(stata_name).stem
 
     tdp = {}
     fields = []
@@ -98,7 +97,7 @@ def generate_tdp(datatable, dta_file, data):
 
     schema = dict(fields=fields)
 
-    resources = [dict(path=dta_file, schema=schema)]
+    resources = [dict(path=stata_name, schema=schema)]
 
     tdp.update(dict(name=dataset_name, resources=resources))
 
@@ -120,8 +119,7 @@ def parse_dataset(data, stata_name):
 
     datatable = data.read()
 
-    dta_file = re.search(r"^.*\/(.*)", stata_name).group(1)
-    metadata = generate_tdp(datatable, dta_file, data)
+    metadata = generate_tdp(datatable, stata_name, data)
 
     return datatable, metadata
 
@@ -138,7 +136,7 @@ def read_stata(stata_name):
     metadata: dict
     """
 
-    print('read "' + stata_name + '"')
+    logging.info('read "%s"', stata_name)
     data = pd.read_stata(stata_name, iterator=True, convert_categoricals=False)
     datatable, metadata = parse_dataset(data, stata_name)
 

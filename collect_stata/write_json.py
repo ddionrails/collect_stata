@@ -2,9 +2,9 @@
 __author__ = "Marius Pahl"
 
 import json
+import logging
 from collections import Counter, OrderedDict
 
-import numpy as np
 import pandas as pd
 
 
@@ -50,33 +50,23 @@ def uni_cat(elem, file_csv):
 
         var_value = value["value"]
 
-        if int(value["value"]) >= 0:
+        if value["value"] >= 0:
             missings.append(False)
-            values.append(var_value)
         else:
             missings.append(True)
-            values.append(var_value)
+        values.append(var_value)
 
-    cat_dict = sorting_dataframe(values, labels, missings, frequencies)
-
-    return cat_dict
+    return sorting_dataframe(values, labels, missings, frequencies)
 
 
 def uni_string():
     """Generate dict with frequencies for nominal variables
 
     Output:
-    string_dict: OrderedDict
+    OrderedDict
     """
 
-    string_dict = OrderedDict()
-
-    string_dict["frequencies"] = []
-    string_dict["labels"] = []
-    string_dict["missings"] = []
-    string_dict["values"] = []
-
-    return string_dict
+    return OrderedDict(frequencies=[], labels=[], labels_de=[], missings=[], values=[])
 
 
 def uni_number():
@@ -100,7 +90,7 @@ def stats_cat(elem, file_csv):
     dict
     """
 
-    total = int(file_csv[elem["name"]].size)
+    total = file_csv[elem["name"]].size
     invalid = int(file_csv[elem["name"]].isnull().sum()) + int(
         sum(n < 0 for n in file_csv[elem["name"]])
     )
@@ -119,15 +109,12 @@ def stats_string(elem, file_csv):
     Output:
     dict
     """
+    frequencies = Counter(file_csv[elem["name"]])
+    string_missings = frequencies[""] + frequencies["."]
+    valid = file_csv[elem["name"]].value_counts().sum() - string_missings
+    invalid = file_csv[elem["name"]].isnull().sum() + string_missings
 
-    valid = int(file_csv[elem["name"]].value_counts().sum())
-    invalid = int(file_csv[elem["name"]].isnull().sum())
-    for i in file_csv[elem["name"]]:
-        if i in ("", "."):
-            valid = valid - 1
-            invalid = invalid + 1
-
-    return {"valid": valid, "invalid": invalid}
+    return {"valid": int(valid), "invalid": int(invalid)}
 
 
 def stats_number(elem, file_csv):
@@ -143,21 +130,20 @@ def stats_number(elem, file_csv):
 
     data_withoutmissings = file_csv[file_csv[elem["name"]] >= 0][elem["name"]]
 
-    first_q, third_q = np.quantile(data_withoutmissings, [0.25, 0.75])
-
     total = file_csv[elem["name"]].size
     invalid = int(file_csv[elem["name"]].isnull().sum()) + int(
         sum(n < 0 for n in file_csv[elem["name"]])
     )
     valid = total - invalid
 
+    summary = data_withoutmissings.describe()
     return {
-        "Min.": min(data_withoutmissings),
-        "1st Qu.": float(first_q),
-        "Median": float(np.median(data_withoutmissings)),
-        "Mean": float(np.mean(data_withoutmissings)),
-        "3rd Qu.": float(third_q),
-        "Max.": max(data_withoutmissings),
+        "Min.": summary["min"],
+        "1st Qu.": summary["25%"],
+        "Median": summary["50%"],
+        "Mean": summary["mean"],
+        "3rd Qu.": summary["75%"],
+        "Max.": summary["max"],
         "valid": valid,
         "invalid": invalid,
     }
@@ -222,9 +208,6 @@ def uni(elem, file_csv):
 
         statistics.update(number_dict)
 
-    else:
-        pass
-
     return statistics
 
 
@@ -254,7 +237,7 @@ def stat_dict(elem, file_csv, file_json, study):
 
     # For 10 or less values the statistics aren't shown.
 
-    if elem["type"] == "number" or elem["type"] == "cat":
+    if elem["type"] in ("number", "cat"):
         data_withoutmissings = file_csv[file_csv[elem["name"]] >= 0][elem["name"]]
         if sum(Counter(data_withoutmissings.values).values()) > 10:
             meta_dict["statistics"] = uni_statistics(elem, file_csv)
@@ -282,10 +265,8 @@ def generate_stat(data, metadata, study):
         elements.append(elem)
     elements_length = len(elements)
 
-    i = 1
-    for elem in elements:
-        print(str(i) + "/" + str(elements_length))
-        i = i + 1
+    for i, elem in enumerate(elements):
+        logging.info("%s/%s", str(i + 1), str(elements_length))
         stat.append(stat_dict(elem, data, metadata, study))
 
     return stat
@@ -303,6 +284,6 @@ def write_json(data, metadata, filename, study=""):
 
     stat = generate_stat(data, metadata, study)
 
-    print('write "' + filename + '"')
+    logging.info('write "%s"', filename)
     with open(filename, "w") as json_file:
         json.dump(stat, json_file, indent=2)
