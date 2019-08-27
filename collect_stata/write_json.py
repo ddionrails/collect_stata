@@ -149,6 +149,24 @@ def stats_number(elem, file_csv):
     }
 
 
+def stats_other(elem, file_csv):
+    """Generate dict with statistics for other variables
+
+    Input:
+    elem: dict
+    file_csv: pandas DataFrame
+
+    Output:
+    statistics: OrderedDict
+    """
+    frequencies = Counter(file_csv[elem["name"]])
+    string_missings = frequencies[""] + frequencies["."]
+    valid = file_csv[elem["name"]].value_counts().sum() - string_missings
+    invalid = file_csv[elem["name"]].isnull().sum() + string_missings
+
+    return {"valid": int(valid), "invalid": int(invalid)}
+
+
 def uni_statistics(elem, file_csv):
     """Call function to generate statistics depending on the variable type
 
@@ -173,7 +191,7 @@ def uni_statistics(elem, file_csv):
         statistics = stats_number(elem, file_csv)
 
     else:
-        statistics = dict()
+        statistics = stats_other(elem, file_csv)
 
     return statistics
 
@@ -241,6 +259,8 @@ def stat_dict(elem, file_csv, file_json, study):
         data_withoutmissings = file_csv[file_csv[elem["name"]] >= 0][elem["name"]]
         if sum(Counter(data_withoutmissings.values).values()) > 10:
             meta_dict["statistics"] = uni_statistics(elem, file_csv)
+        else:
+            meta_dict["statistics"] = stats_other(elem, file_csv)
     else:
         meta_dict["statistics"] = uni_statistics(elem, file_csv)
 
