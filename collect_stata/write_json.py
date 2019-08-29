@@ -208,23 +208,14 @@ def uni(elem, file_csv):
     """
 
     statistics = OrderedDict()
+    _type = elem["type"]
+    type_functions = {"string": uni_string, "number": uni_number}
 
-    if elem["type"] == "cat":
-        cat_dict = uni_cat(elem, file_csv)
-
-        statistics.update(cat_dict)
-
-    elif elem["type"] == "string":
-
-        string_dict = uni_string()
-
-        statistics.update(string_dict)
-
-    elif elem["type"] == "number":
-
-        number_dict = uni_number()
-
-        statistics.update(number_dict)
+    if _type == "cat":
+        statistics.update(uni_cat(elem, file_csv))
+    # We change this to else, if no other types exist
+    elif _type in type_functions:
+        statistics.update(type_functions[_type]())
 
     return statistics
 
