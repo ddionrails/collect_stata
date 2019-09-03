@@ -6,7 +6,6 @@ import pathlib
 import tempfile
 import unittest
 from collections import OrderedDict
-from os import path
 
 import pandas as pd
 
@@ -41,7 +40,7 @@ class TestWriteJson(unittest.TestCase):
         Create a test dataframe
         """
         input_path = pathlib.Path("tests/input")
-        test_data = pd.read_csv(path.join(input_path, "test_data.csv"))
+        test_data = pd.read_csv(input_path.joinpath("test_data.csv"))
 
         return test_data
 
@@ -51,7 +50,7 @@ class TestWriteJson(unittest.TestCase):
         Create test metadata
         """
         input_path = pathlib.Path("tests/input")
-        with open(path.join(input_path, "test_metadata.json")) as json_file:
+        with open(input_path.joinpath("test_metadata.json")) as json_file:
             test_metadata = json.load(json_file)
 
         return test_metadata
