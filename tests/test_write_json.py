@@ -2,11 +2,12 @@
 __author__ = "Marius Pahl"
 
 import json
+import pathlib
 import tempfile
 import unittest
 from collections import OrderedDict
+from os import path
 
-import numpy as np
 import pandas as pd
 
 from collect_stata.write_json import (
@@ -39,90 +40,21 @@ class TestWriteJson(unittest.TestCase):
         """
         Create a test dataframe
         """
-        data_table = pd.DataFrame()
-        data_table["TESTCAT"] = [-1, -1, 1, 2, 1, np.nan, 1, 2, 1, 2, 2, 1, 1, 2, 2]
-        data_table["TESTSTRING"] = [
-            "",
-            "a",
-            "b",
-            ".",
-            np.nan,
-            "c",
-            np.nan,
-            ".",
-            np.nan,
-            "d",
-            "e",
-            "f",
-            "f",
-            "f",
-            "g",
-        ]
-        data_table["TESTNUMBER"] = [-1, -1, -2, 5, 10, 10, 15, 100, 10, 2, -1, 3, 4, 5, 6]
-        data_table["TESTOTHER"] = [
-            -1,
-            "a",
-            -2,
-            5,
-            "b",
-            np.nan,
-            15,
-            "x",
-            2,
-            3,
-            "b",
-            1,
-            2,
-            "y",
-            "z",
-        ]
+        input_path = pathlib.Path("tests/input")
+        test_data = pd.read_csv(path.join(input_path, "test_data.csv"))
 
-        return data_table
+        return test_data
 
     @staticmethod
     def get_testmetadata():
         """
         Create test metadata
         """
-        metadata = dict()
-        metadata["name"] = "teststudy"
-        metadata["resources"] = list()
-        metadata["resources"].append(dict(path="testpath", schema=dict()))
-        metadata["resources"][0]["schema"]["fields"] = list()
+        input_path = pathlib.Path("tests/input")
+        with open(path.join(input_path, "test_metadata.json")) as json_file:
+            test_metadata = json.load(json_file)
 
-        catvar = dict()
-        catvar["label"] = "label for testcat"
-        catvar["type"] = "cat"
-        catvar["name"] = "TESTCAT"
-        catvar["values"] = list()
-        catvar["values"].append(dict(label="missing", value=-1))
-        catvar["values"].append(dict(label="a", value=1))
-        catvar["values"].append(dict(label="b", value=2))
-
-        metadata["resources"][0]["schema"]["fields"].append(catvar)
-
-        stringvar = dict()
-        stringvar["label"] = "label for teststring"
-        stringvar["type"] = "string"
-        stringvar["name"] = "TESTSTRING"
-
-        metadata["resources"][0]["schema"]["fields"].append(stringvar)
-
-        numvar = dict()
-        numvar["label"] = "label for testnumber"
-        numvar["type"] = "number"
-        numvar["name"] = "TESTNUMBER"
-
-        metadata["resources"][0]["schema"]["fields"].append(numvar)
-
-        othervar = dict()
-        othervar["label"] = "label for other test type"
-        othervar["type"] = ""
-        othervar["name"] = "TESTOTHER"
-
-        metadata["resources"][0]["schema"]["fields"].append(othervar)
-
-        return metadata
+        return test_metadata
 
     @staticmethod
     def get_teststudy():
