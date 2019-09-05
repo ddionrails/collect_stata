@@ -10,10 +10,10 @@ gen TESTNUMBER = ""
 gen TESTOTHER = ""
 
 // Create Testdata
-local TESTCAT = "-1 -1 .b 2 1 . 1 2 1 2 2 1 1 2 2"
+local TESTCAT = "-1 -1 .b 2 1 . 1 2 1 2 .b 1 1 2 2"
 local TESTSTRING = ". a b .a . c . .b . d e f f f g"
-local TESTNUMBER = "-1 .a -2 5 10 10 15 100 10 2 -1 3 4 5 6"
-local TESTOTHER = "-1 a -2 5 b . 15 x 2 3 b 1 2 y z"
+local TESTNUMBER = "3 .a -2 5 10 . 15 100 10 2 -1 3 4 5 6"
+local TESTOTHER = "-1 a -2 5 b . 15 x 2 .a b 1 2 y z"
 
 local data = "TESTCAT TESTSTRING TESTNUMBER TESTOTHER"
 
