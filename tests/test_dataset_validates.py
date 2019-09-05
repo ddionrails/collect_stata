@@ -1,7 +1,8 @@
+# -*- coding: utf-8 -*-
 """ Functional test """
+
 import json
 import pathlib
-from os import path
 from typing import Dict
 
 from jsonschema import validate
@@ -17,7 +18,7 @@ def test_dataset_validates(tmpdir, dataset_schema: Dict):
 
     stata_to_json(study_name="soep-core", input_path=input_path, output_path=output_path)
 
-    with open(path.join(output_path, "test.json")) as json_file:
+    with open(output_path.joinpath("test.json")) as json_file:
         result = json.load(json_file)
 
     validate(instance=result, schema=dataset_schema)
