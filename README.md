@@ -3,7 +3,7 @@
 The tool reads dta-files, calculates some univariate statistics for each variable 
 and writes out a json-file with these calculations and the metadata (extracted from stata).
 
-The purpose of the project is the preprocessing of data for ddionrails.
+The purpose of the project is the preprocessing of data for [ddionrails](https://github.com/ddionrails/ddionrails).
 
 ## Setup for development
 
