@@ -1,4 +1,16 @@
-"""__main__.py"""
+"""Command-line options for stata_to_json
+
+usage: collect_stata [-h] --input INPUT --output OUTPUT
+--study STUDY [--debug] [--verbose]
+
+optional arguments:
+--help, -h: show this help message and exit
+--input INPUT, -i INPUT: Path to local stata files
+--output OUTPUT, -o OUTPUT: Path to output folder
+--study STUDY, -s STUDY: Study of the data
+--debug, -d: Set logging Level to DEBUG
+--verbose, -v: Set logging Level to INFO
+"""
 __author__ = "Marius Pahl"
 
 import argparse

@@ -1,18 +1,18 @@
-"""stata_to_json.py"""
+"""Read stata files and write out json files.
+"""
 __author__ = "Marius Pahl"
 
 from .dataset import Dataset
 
 
-def stata_to_json(study_name, input_path, output_path):
-    """
-    Input:
-    study_name: Name of the study
-    input_path: path to data folder
-    output_path: path to output folder
+def stata_to_json(study_name: str, input_path: str, output_path: str):
+    """Method that reads all stata files from input path and
+    writes out json files
 
-    This method reads stata file(s), transforms it in tabular data package.
-    After this, it writes it out as csv and json files.
+    Args:
+        study_name (str): Name of the study.
+        input_path (str): Path to input folder.
+        output_path (str): Path to output folder.
     """
 
     for file in input_path.glob("*.dta"):
