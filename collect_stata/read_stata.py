@@ -1,4 +1,7 @@
-"""read_stata.py"""
+"""Read data and metadata from stata files.
+
+This module creates a data table and a metadata dictionary.
+"""
 __author__ = "Marius Pahl"
 
 import logging
@@ -9,11 +12,11 @@ import pandas as pd
 
 
 def cat_values(varscale: dict, data) -> list:
-    """Extract categorical metadata from stata files
+    """Extract categorical metadata from stata files.
 
     Args:
         varscale (dict): Dictionary of the scale of the variables.
-        data (pandas StataReader): Imported dataset.
+        data (pandas.io.stata.StataReader): Imported dataset.
 
     Returns:
         cat_list (list): List of categorical variables with labels.
@@ -32,21 +35,21 @@ def cat_values(varscale: dict, data) -> list:
     return cat_list
 
 
-def scale_var(var: str, varscale: dict, datatable) -> str:
-    """Select vartype
+def scale_var(varname: str, varscale: dict, datatable) -> str:
+    """Rename types of variables to cat, number and string.
 
     Args:
-        var (string): Name of the variable.
+        varname (str): Name of the variable.
         varscale (dict): Dictionary of the scale of the variables.
-        datatable (pandas DataFrame): Imported dataset.
+        datatable (pandas.DataFrame): Imported dataset.
 
     Returns:
-        var_type (string): Returns the type of the variable, either cat, number or string.
+        var_type (str): Returns the type of the variable, either cat, number or string.
     """
 
     if varscale["name"] != "":
         return "cat"
-    var_type = str(datatable[var].dtype)
+    var_type = str(datatable[varname].dtype)
     match_float = re.search(r"float\d*", var_type)
     match_int = re.search(r"int\d*", var_type)
     if match_float or match_int:
@@ -57,14 +60,14 @@ def scale_var(var: str, varscale: dict, datatable) -> str:
 
 
 def generate_tdp(data, stata_name: str):
-    """Generate tabular data package file
+    """Generate tabular data package file.
 
     Args:
-        stata_name (string): Name of the stata file.
-        data (pandas StataReader): Raw data.
+        stata_name (str): Name of the stata file.
+        data (pandas.io.stata.StataReader): Raw data.
 
     Returns:
-        datatable (pandas DataFrame): Readable data.
+        datatable (pandas.DataFrame): Extracted data.
         metadata (dict): Meta information for the data.
     """
 
@@ -78,9 +81,9 @@ def generate_tdp(data, stata_name: str):
         dict(name=varscale, sn=number) for number, varscale in enumerate(data.lbllist)
     ]
 
-    for var, varscale in zip(variables, varscales):
-        scale = scale_var(var, varscale, datatable)
-        meta = dict(name=var, label=varlabels[var], type=scale)
+    for varname, varscale in zip(variables, varscales):
+        scale = scale_var(varname, varscale, datatable)
+        meta = dict(name=varname, label=varlabels[varname], type=scale)
         if scale == "cat":
             meta["values"] = cat_values(varscale, data)
 
@@ -94,13 +97,13 @@ def generate_tdp(data, stata_name: str):
 
 
 def read_stata(stata_name):
-    """Logging and reading stata files
+    """Logging and reading stata files.
 
     Args:
-        stata_name (string): Name of the stata file.
+        stata_name (str): Name of the stata file.
 
     Returns:
-        datatable (pandas DataFrame): Readable data.
+        datatable (pandas.DataFrame): Extracted data.
         metadata (dict): Meta information for the data.
     """
 

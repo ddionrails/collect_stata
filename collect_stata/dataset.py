@@ -1,7 +1,11 @@
-"""dataset.py
+"""Read stata files and write out json files.
 
-The Class Dataset makes it possible to read stata files
-and write out json files.
+The class Dataset contains two method from external files.
+
+Example:
+    dataset = Dataset()
+    dataset.read_stata("../input/dataset.dta")
+    dataset.write_json("../output/dataset.json")
 """
 __author__ = "Marius Pahl"
 
@@ -16,11 +20,6 @@ class Dataset:
     Args:
         dataset: Contains the data in tabular format.
         metadata: Contains the metadata in json format.
-
-    Example:
-        dataset = Dataset()
-        dataset.read_stata("../input/dataset.dta")
-        dataset.write_json("../output/dataset.json")
     """
 
     def __init__(self):
