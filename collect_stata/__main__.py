@@ -14,22 +14,21 @@ def main():
     parser = argparse.ArgumentParser(
         description="Convert stata files to readable json files"
     )
-    parser.add_argument("--input", "-i", help="Path to local stata files")
-    parser.add_argument("--output", "-o", help="Path to output folder")
-    parser.add_argument("--study", "-s", help="Study of the data")
+    parser.add_argument("--input", "-i", help="Path to local stata files", required=True)
+    parser.add_argument("--output", "-o", help="Path to output folder", required=True)
+    parser.add_argument("--study", "-s", help="Study of the data", required=True)
     parser.add_argument(
         "--debug", "-d", action="store_true", help="Set logging Level to DEBUG"
     )
     parser.add_argument(
         "--verbose", "-v", action="store_true", help="Set logging Level to INFO"
     )
-    args = parser.parse_args()
-
     if len(sys.argv) == 1:
         parser.print_help()
         sys.exit(1)
 
-    study = args.study if args.study else ""
+    args = parser.parse_args()
+    study = args.study
     input_path = pathlib.Path(args.input)
     output_path = pathlib.Path(args.output)
 
