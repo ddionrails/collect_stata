@@ -8,20 +8,18 @@ import re
 import pandas as pd
 
 
-def cat_values(varscale, data):
-    """
-    Extract categorical metadata from stata files
+def cat_values(varscale: dict, data) -> list:
+    """Extract categorical metadata from stata files
 
-    Input:
-    varscale: dict
-    data: pandas StataReader
+    Args:
+        varscale (dict): Dictionary of the scale of the variables.
+        data (pandas StataReader): Imported dataset.
 
-    Output:
-    cat_list: list
+    Returns:
+        cat_list (list): List of categorical variables with labels.
     """
 
     cat_list = list()
-
     label_dict = data.value_labels()
 
     for label in data.lbllist:
@@ -34,17 +32,16 @@ def cat_values(varscale, data):
     return cat_list
 
 
-def scale_var(var, varscale, datatable):
-    """
-    Select vartype
+def scale_var(var: str, varscale: dict, datatable) -> str:
+    """Select vartype
 
-    Input:
-    var: string
-    varscale: dict
-    datatable: pandas DataFrame
+    Args:
+        var (string): Name of the variable.
+        varscale (dict): Dictionary of the scale of the variables.
+        datatable (pandas DataFrame): Imported dataset.
 
-    Output:
-    var_type: string
+    Returns:
+        var_type (string): Returns the type of the variable, either cat, number or string.
     """
 
     if varscale["name"] != "":
@@ -59,31 +56,27 @@ def scale_var(var, varscale, datatable):
     return var_type
 
 
-def generate_tdp(datatable, stata_name, data):
-    """
-    Generate tabular data package file
+def generate_tdp(data, stata_name: str):
+    """Generate tabular data package file
 
-    Input:
-    datatable: pandas DataFrame
-    stata_name: string
-    data: pandas StataReader
+    Args:
+        stata_name (string): Name of the stata file.
+        data (pandas StataReader): Raw data.
 
-    Output:
-    tdp: dict
+    Returns:
+        datatable (pandas DataFrame): Readable data.
+        metadata (dict): Meta information for the data.
     """
 
     variables = data.varlist
-
     varlabels = data.variable_labels()
-
+    datatable = data.read()
+    dataset_name = pathlib.Path(stata_name).stem
+    metadata = {}
+    fields = []
     varscales = [
         dict(name=varscale, sn=number) for number, varscale in enumerate(data.lbllist)
     ]
-
-    dataset_name = pathlib.Path(stata_name).stem
-
-    tdp = {}
-    fields = []
 
     for var, varscale in zip(variables, varscales):
         scale = scale_var(var, varscale, datatable)
@@ -94,48 +87,25 @@ def generate_tdp(datatable, stata_name, data):
         fields.append(meta)
 
     schema = dict(fields=fields)
-
     resources = [dict(path=stata_name, schema=schema)]
-
-    tdp.update(dict(name=dataset_name, resources=resources))
-
-    return tdp
-
-
-def parse_dataset(data, stata_name):
-    """
-    Create data and metadata
-
-    Input:
-    data: pandas StataReader
-    stata_name: string
-
-    Output:
-    datatable: pandas DataFrame
-    metadata: dict
-    """
-
-    datatable = data.read()
-
-    metadata = generate_tdp(datatable, stata_name, data)
+    metadata.update(dict(name=dataset_name, resources=resources))
 
     return datatable, metadata
 
 
 def read_stata(stata_name):
-    """
-    Read stata files (dta)
+    """Logging and reading stata files
 
-    Input:
-    stata_name: string
+    Args:
+        stata_name (string): Name of the stata file.
 
-    Output:
-    datatable: pandas DataFrame
-    metadata: dict
+    Returns:
+        datatable (pandas DataFrame): Readable data.
+        metadata (dict): Meta information for the data.
     """
 
     logging.info('read "%s"', stata_name)
     data = pd.read_stata(stata_name, iterator=True, convert_categoricals=False)
-    datatable, metadata = parse_dataset(data, stata_name)
+    datatable, metadata = generate_tdp(data, stata_name)
 
     return datatable, metadata
