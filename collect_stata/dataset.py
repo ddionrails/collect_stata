@@ -1,6 +1,8 @@
 """Read stata files and write out json files.
 
-The class Dataset contains two method from external files.
+Read_stata and write_json are imported.
+The class variables dataset and metadata are filled by the
+read in data of read_stata and are used to write out the json file.
 
 Example:
     dataset = Dataset()
@@ -17,7 +19,7 @@ class Dataset:
     """
     Dataset allows the user to read, test and export data in different formats.
 
-    Args:
+    Attributes:
         dataset: Contains the data in tabular format.
         metadata: Contains the metadata in json format.
     """

@@ -11,7 +11,7 @@ import re
 import pandas as pd
 
 
-def cat_values(varscale: dict, data) -> list:
+def cat_values(varscale: dict, data: pd.io.stata.StataReader) -> list:
     """Extract categorical metadata from stata files.
 
     Args:
@@ -35,7 +35,7 @@ def cat_values(varscale: dict, data) -> list:
     return cat_list
 
 
-def scale_var(varname: str, varscale: dict, datatable) -> str:
+def scale_var(varname: str, varscale: dict, datatable: pd.DataFrame) -> str:
     """Rename types of variables to cat, number and string.
 
     Args:
@@ -59,7 +59,7 @@ def scale_var(varname: str, varscale: dict, datatable) -> str:
     return var_type
 
 
-def generate_tdp(data, stata_name: str):
+def generate_tdp(data: pd.io.stata.StataReader, stata_name: str) -> (pd.DataFrame, dict):
     """Generate tabular data package file.
 
     Args:
@@ -96,7 +96,7 @@ def generate_tdp(data, stata_name: str):
     return datatable, metadata
 
 
-def read_stata(stata_name):
+def read_stata(stata_name: str) -> (pd.DataFrame, dict):
     """Logging and reading stata files.
 
     Args:

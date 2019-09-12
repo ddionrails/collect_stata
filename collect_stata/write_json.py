@@ -9,7 +9,9 @@ from collections import Counter, OrderedDict
 import pandas as pd
 
 
-def sorting_dataframe(values, labels, missings, frequencies) -> dict:
+def sorting_dataframe(
+    values: list, labels: list, missings: list, frequencies: list
+) -> dict:
     """Function to sort values and labels and return sorted dict.
 
     Args:
@@ -37,7 +39,7 @@ def sorting_dataframe(values, labels, missings, frequencies) -> dict:
     return dataframe.to_dict("list")
 
 
-def uni_cat(elem, data):
+def uni_cat(elem: dict, data: pd.DataFrame) -> dict:
     """Generate dict with frequencies and labels for categorical variables.
 
     Args:
@@ -73,7 +75,7 @@ def uni_cat(elem, data):
     return sorting_dataframe(values, labels, missings, frequencies)
 
 
-def uni_string():
+def uni_string() -> OrderedDict:
     """Generate dict with frequencies for nominal variables.
 
     Returns:
@@ -84,7 +86,7 @@ def uni_string():
     return OrderedDict(frequencies=[], labels=[], labels_de=[], missings=[], values=[])
 
 
-def uni_number():
+def uni_number() -> OrderedDict:
     """Generate dict with frequencies for numerical variables.
 
     Returns:
@@ -95,7 +97,7 @@ def uni_number():
     return OrderedDict(frequencies=[], labels=[], labels_de=[], missings=[], values=[])
 
 
-def stats_cat(elem, data):
+def stats_cat(elem: dict, data: pd.DataFrame) -> dict:
     """Generate dict with statistics for categorical variables.
 
     Args:
@@ -115,7 +117,7 @@ def stats_cat(elem, data):
     return {"valid": valid, "invalid": invalid}
 
 
-def stats_string(elem, data):
+def stats_string(elem: dict, data: pd.DataFrame) -> dict:
     """Generate dict with statistics for nominal variables.
 
     Args:
@@ -134,7 +136,7 @@ def stats_string(elem, data):
     return {"valid": int(valid), "invalid": int(invalid)}
 
 
-def stats_number(elem, data):
+def stats_number(elem: dict, data: pd.DataFrame) -> dict:
     """Generate dict with statistics for numerical variables
 
     Args:
@@ -142,7 +144,7 @@ def stats_number(elem, data):
         data (pandas.DataFrame): Datatable of imported data.
 
     Returns:
-        {...} (OrderedDict): Calculations for numerical variables.
+        {...} (dict): Calculations for numerical variables.
     """
 
     data_withoutmissings = data[data[elem["name"]] >= 0][elem["name"]]
@@ -166,7 +168,7 @@ def stats_number(elem, data):
     }
 
 
-def uni_statistics(elem, data):
+def uni_statistics(elem: dict, data: pd.DataFrame) -> dict:
     """Call function to generate statistics depending on the variable type.
 
     Args:
@@ -174,7 +176,7 @@ def uni_statistics(elem, data):
         data (pandas.DataFrame): Datatable of imported data.
 
     Returns:
-        statistics (OrderedDict):
+        statistics (dict):
         Statistics for either categorical, nominal or numerical variables.
     """
 
@@ -196,7 +198,7 @@ def uni_statistics(elem, data):
     return statistics
 
 
-def uni(elem, data):
+def uni(elem: dict, data: pd.DataFrame) -> OrderedDict:
     """Call function to generate frequencies depending on the variable type.
 
     Args:
@@ -221,7 +223,7 @@ def uni(elem, data):
     return statistics
 
 
-def stat_dict(elem, data, metadata, study: str):
+def stat_dict(elem: dict, data: pd.DataFrame, metadata: dict, study: str) -> OrderedDict:
     """Fill variables with metadata of the dataset.
 
     Args:
@@ -231,7 +233,7 @@ def stat_dict(elem, data, metadata, study: str):
         study (str): Name of the study.
 
     Returns:
-        meta_dict (OrderedDict): Combine calculations and meta information.
+        meta_dict (OrderedDict): Combined calculations and meta information.
     """
 
     scale = elem["type"][0:3]
@@ -257,7 +259,7 @@ def stat_dict(elem, data, metadata, study: str):
     return meta_dict
 
 
-def generate_stat(data, metadata, study: str):
+def generate_stat(data: pd.DataFrame, metadata: dict, study: str) -> list:
     """Prepare statistics for every variable.
 
     Args:
@@ -266,7 +268,7 @@ def generate_stat(data, metadata, study: str):
         study (str): Name of the study.
 
     Returns:
-        stat (OrderedDict): Combine calculations and meta information.
+        stat (list): Combine calculations and meta information.
     """
 
     stat = list()
@@ -282,7 +284,7 @@ def generate_stat(data, metadata, study: str):
     return stat
 
 
-def write_json(data, metadata, filename, study=""):
+def write_json(data: pd.DataFrame, metadata: dict, filename: str, study: str):
     """Main function to write json.
 
     Args:
