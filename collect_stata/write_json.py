@@ -148,7 +148,6 @@ def stats_number(elem: dict, data: pd.DataFrame) -> dict:
     """
 
     data_withoutmissings = data[data[elem["name"]] >= 0][elem["name"]]
-
     total = data[elem["name"]].size
     invalid = int(data[elem["name"]].isnull().sum()) + int(
         sum(n < 0 for n in data[elem["name"]])
@@ -181,17 +180,11 @@ def uni_statistics(elem: dict, data: pd.DataFrame) -> dict:
     """
 
     if elem["type"] == "cat":
-
         statistics = stats_cat(elem, data)
-
     elif elem["type"] == "string":
-
         statistics = stats_string(elem, data)
-
     elif elem["type"] == "number":
-
         statistics = stats_number(elem, data)
-
     else:
         statistics = dict()
 
@@ -239,7 +232,6 @@ def stat_dict(elem: dict, data: pd.DataFrame, metadata: dict, study: str) -> Ord
     scale = elem["type"][0:3]
 
     meta_dict = OrderedDict()
-
     meta_dict["study"] = study
     meta_dict["dataset"] = metadata["name"]
     meta_dict["name"] = elem["name"]
@@ -248,7 +240,6 @@ def stat_dict(elem: dict, data: pd.DataFrame, metadata: dict, study: str) -> Ord
     meta_dict["categories"] = uni(elem, data)
 
     # For 10 or less values the statistics aren't shown.
-
     if elem["type"] in ("number", "cat"):
         data_withoutmissings = data[data[elem["name"]] >= 0][elem["name"]]
         if sum(Counter(data_withoutmissings.values).values()) > 10:
