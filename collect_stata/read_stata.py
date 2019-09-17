@@ -7,8 +7,6 @@ import re
 
 import pandas as pd
 
-LOGGER = logging.getLogger(__name__)
-
 
 def cat_values(varscale, data):
     """
