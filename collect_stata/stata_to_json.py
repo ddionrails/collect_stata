@@ -42,4 +42,6 @@ def stata_to_json(study_name, input_path, output_path):
         process.join()
 
     duration = time.time() - start_time
-    logging.info(f"Duration {duration:.5f} seconds")
+    logging.info(  # pylint: disable=logging-fstring-interpolation
+        f"Duration {duration:.5f} seconds"
+    )
