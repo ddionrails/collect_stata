@@ -27,6 +27,7 @@ def test_cli_with_required_arguments():
         "output_path",
         "-s",
         "some-study",
+        "-m",
     ]
     with patch.object(sys, "argv", _arguments), patch(
         "collect_stata.__main__.stata_to_json"
@@ -36,5 +37,6 @@ def test_cli_with_required_arguments():
         input_path=pathlib.Path("input_path"),
         output_path=pathlib.Path("output_path"),
         study_name="some-study",
+        run_parallel=True,
     )
     mocked_stata_to_json.assert_called_once_with(**expected_arguments)
