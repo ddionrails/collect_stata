@@ -23,6 +23,12 @@ def main():
     parser.add_argument(
         "--verbose", "-v", action="store_true", help="Set logging Level to INFO"
     )
+    parser.add_argument(
+        "--multiprocessing",
+        "-m",
+        action="store_true",
+        help="Process stata files in parallel",
+    )
     if len(sys.argv) == 1:
         parser.print_help()
         sys.exit(1)
@@ -31,13 +37,19 @@ def main():
     study = args.study
     input_path = pathlib.Path(args.input)
     output_path = pathlib.Path(args.output)
+    run_parallel = args.multiprocessing
 
     if args.verbose:
         logging.basicConfig(level=logging.INFO)
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    stata_to_json(study_name=study, input_path=input_path, output_path=output_path)
+    stata_to_json(
+        study_name=study,
+        input_path=input_path,
+        output_path=output_path,
+        run_parallel=run_parallel,
+    )
 
 
 if __name__ == "__main__":

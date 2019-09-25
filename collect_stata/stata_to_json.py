@@ -1,10 +1,24 @@
 """stata_to_json.py"""
 __author__ = "Marius Pahl"
 
+import logging
+import time
+from multiprocessing import Process
+from pathlib import Path
+
 from .dataset import Dataset
 
 
-def stata_to_json(study_name, input_path, output_path):
+def run(file: Path, output_path: Path, study_name: str) -> None:
+    """Helper function that runs in parallel."""
+    dataset = Dataset()
+    dataset.read_stata(str(file))
+    dataset.write_json(
+        output_path.joinpath(file.stem).with_suffix(".json"), study=study_name
+    )
+
+
+def stata_to_json(study_name, input_path, output_path, run_parallel=True):
     """
     Input:
     study_name: Name of the study
@@ -15,8 +29,23 @@ def stata_to_json(study_name, input_path, output_path):
     After this, it writes it out as csv and json files.
     """
 
-    for file in input_path.glob("*.dta"):
-        dataset = Dataset()
-        fname = file.stem
-        dataset.read_stata(str(file))
-        dataset.write_json(str(output_path) + "/" + fname + ".json", study=study_name)
+    start_time = time.time()
+    if run_parallel:
+        # gather the processes
+        processes = []
+        for file in input_path.glob("*.dta"):
+            process = Process(target=run, args=(file, output_path, study_name))
+            processes.append(process)
+            process.start()
+
+        # complete the processes
+        for process in processes:
+            process.join()
+    else:
+        for file in input_path.glob("*.dta"):
+            run(file=file, output_path=output_path, study_name=study_name)
+
+    duration = time.time() - start_time
+    logging.info(  # pylint: disable=logging-fstring-interpolation
+        f"Duration {duration:.5f} seconds"
+    )
