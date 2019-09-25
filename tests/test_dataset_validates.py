@@ -7,7 +7,7 @@ from typing import Dict
 
 from jsonschema import validate
 
-from collect_stata.stata_to_json import stata_to_json
+from collect_stata.__main__ import stata_to_json
 
 
 def test_dataset_validates(tmpdir, dataset_schema: Dict):

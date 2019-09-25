@@ -6,11 +6,13 @@ import logging
 import pathlib
 import sys
 
-from collect_stata.stata_to_json import stata_to_json
+from collect_stata.read_stata import read_stata
+from collect_stata.write_json import write_json
 
 
 def main():
-    """The main routine."""
+    """ Implements cli argument parsing and initiates the data processing."""
+
     parser = argparse.ArgumentParser(
         description="Convert stata files to readable json files"
     )
@@ -40,5 +42,24 @@ def main():
     stata_to_json(study_name=study, input_path=input_path, output_path=output_path)
 
 
-if __name__ == "__main__":
-    main()
+def stata_to_json(study_name: str, input_path: pathlib.Path, output_path: pathlib.Path):
+    """
+
+    This method reads stata file(s),
+    transforms it into a tabular data package.
+    TODO: But why do we need a tabular datapackage?
+    After this, it writes it out as csv and json files.
+
+    Args:
+        study_name: Name of the study that is being processed.
+        input_path: Path to the folder, that contains the stata files.
+        output_path: Folder path to write the output data to.
+    """
+
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    for file in input_path.glob("*.dta"):
+        file_path = output_path.joinpath(file.stem).with_suffix(".json")
+
+        dataset, metadata = read_stata(file)
+        write_json(dataset, metadata, file_path, study=study_name)

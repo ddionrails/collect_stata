@@ -5,10 +5,10 @@ import logging
 import pathlib
 import re
 
-import pandas as pd
+import pandas
 
 
-def cat_values(varscale, data):
+def extract_category_value_labels(varscale, data):
     """
     Extract categorical metadata from stata files
 
@@ -34,7 +34,7 @@ def cat_values(varscale, data):
     return cat_list
 
 
-def scale_var(var, varscale, datatable):
+def get_variable_type(var: str, varscale: dict, datatable: pandas.DataFrame):
     """
     Select vartype
 
@@ -86,10 +86,10 @@ def generate_tdp(datatable, stata_name, data):
     fields = []
 
     for var, varscale in zip(variables, varscales):
-        scale = scale_var(var, varscale, datatable)
+        scale = get_variable_type(var, varscale, datatable)
         meta = dict(name=var, label=varlabels[var], type=scale)
         if scale == "cat":
-            meta["values"] = cat_values(varscale, data)
+            meta["values"] = extract_category_value_labels(varscale, data)
 
         fields.append(meta)
 
@@ -135,7 +135,7 @@ def read_stata(stata_name):
     """
 
     logging.info('read "%s"', stata_name)
-    data = pd.read_stata(stata_name, iterator=True, convert_categoricals=False)
+    data = pandas.read_stata(stata_name, iterator=True, convert_categoricals=False)
     datatable, metadata = parse_dataset(data, stata_name)
 
     return datatable, metadata
