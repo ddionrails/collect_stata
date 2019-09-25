@@ -92,8 +92,12 @@ def stata_to_json(study_name, input_path, output_path, run_parallel=True):
 
 
 def _run(file: pathlib.Path, output_path: pathlib.Path, study_name: str) -> None:
-    """Helper function that runs in parallel."""
+    """Helper function that can be run in parallel."""
     file_path = output_path.joinpath(file.stem).with_suffix(".json")
 
     dataset, metadata = read_stata(file)
     write_json(dataset, metadata, file_path, study=study_name)
+
+
+if __name__ == "__main__":
+    main()
