@@ -8,7 +8,7 @@ import sys
 import time
 from multiprocessing import Process
 
-from collect_stata.read_stata import read_stata
+from collect_stata.read_stata import StataDataExtractor
 from collect_stata.write_json import write_json
 
 
@@ -95,8 +95,9 @@ def _run(file: pathlib.Path, output_path: pathlib.Path, study_name: str) -> None
     """Helper function that can be run in parallel."""
     file_path = output_path.joinpath(file.stem).with_suffix(".json")
 
-    dataset, metadata = read_stata(file)
-    write_json(dataset, metadata, file_path, study=study_name)
+    stata_data = StataDataExtractor(file)
+    stata_data.parse_file()
+    write_json(stata_data.data, stata_data.metadata, file_path, study=study_name)
 
 
 if __name__ == "__main__":

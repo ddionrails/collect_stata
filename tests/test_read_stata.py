@@ -4,7 +4,7 @@ import unittest
 
 import pandas
 
-from collect_stata.read_stata import extract_category_value_labels
+from collect_stata.read_stata import StataDataExtractor
 
 
 class TestMetadataFunctions(unittest.TestCase):
