@@ -10,9 +10,9 @@ def stata_to_json(study_name: str, input_path: str, output_path: str):
     writes out json files
 
     Args:
-        study_name (str): Name of the study.
-        input_path (str): Path to input folder.
-        output_path (str): Path to output folder.
+        study_name: Name of the study.
+        input_path: Path to input folder.
+        output_path: Path to output folder.
     """
 
     for file in input_path.glob("*.dta"):
