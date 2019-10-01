@@ -75,7 +75,7 @@ def uni_cat(elem: dict, data: pd.DataFrame) -> dict:
     return sorting_dataframe(values, labels, missings, frequencies)
 
 
-def uni_string() -> OrderedDict:
+def uni_string() -> dict:
     """Generate dict with frequencies for nominal variables.
 
     Returns:
@@ -83,18 +83,18 @@ def uni_string() -> OrderedDict:
         labels, labels_de, missings and values for nominal variables.
     """
 
-    return OrderedDict(frequencies=[], labels=[], labels_de=[], missings=[], values=[])
+    return dict(frequencies=[], labels=[], labels_de=[], missings=[], values=[])
 
 
-def uni_number() -> OrderedDict:
+def uni_number() -> dict:
     """Generate dict with frequencies for numerical variables.
 
     Returns:
-        OrderedDict(...) (dict): Empty placeholder for frequencies,
+        (...) (dict): Empty placeholder for frequencies,
         labels, labels_de, missings and values for numerical variables.
     """
 
-    return OrderedDict(frequencies=[], labels=[], labels_de=[], missings=[], values=[])
+    return dict(frequencies=[], labels=[], labels_de=[], missings=[], values=[])
 
 
 def stats_cat(elem: dict, data: pd.DataFrame) -> dict:
