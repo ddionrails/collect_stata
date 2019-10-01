@@ -15,13 +15,13 @@ def sorting_dataframe(
     """Function to sort values and labels and return sorted dict.
 
     Args:
-        values (list): List of values.
-        labels (list): List of labels.
-        missings (list): List of missings.
-        frequencies (list): List of frequencies.
+        values: List of values.
+        labels: List of labels.
+        missings: List of missings.
+        frequencies: List of frequencies.
 
     Returns:
-        dataframe.to_dict("list") (dict): Sorted dictionary of categorical values.
+        Sorted dictionary of categorical values.
     """
 
     dataframe = pd.DataFrame(
@@ -43,11 +43,10 @@ def uni_cat(elem: dict, data: pd.DataFrame) -> dict:
     """Generate dict with frequencies and labels for categorical variables.
 
     Args:
-        elem (dict): Name, label, type and values of categorical variables.
-        data (pandas.DataFrame): Datatable of imported data.
+        elem: Name, label, type and values of categorical variables.
+        data: Datatable of imported data.
 
     Returns:
-        sorting_dataframe(...) (dict):
         Values, labels, missings and frequencies of the categorical variable.
     """
 
@@ -79,8 +78,8 @@ def uni_string() -> dict:
     """Generate dict with frequencies for nominal variables.
 
     Returns:
-        OrderedDict(...) (dict): Empty placeholder for frequencies,
-        labels, labels_de, missings and values for nominal variables.
+        Empty placeholder for frequencies, labels, labels_de,
+        missings and values for nominal variables.
     """
 
     return dict(frequencies=[], labels=[], labels_de=[], missings=[], values=[])
@@ -90,8 +89,8 @@ def uni_number() -> dict:
     """Generate dict with frequencies for numerical variables.
 
     Returns:
-        (...) (dict): Empty placeholder for frequencies,
-        labels, labels_de, missings and values for numerical variables.
+        Empty placeholder for frequencies, labels, labels_de,
+        missings and values for numerical variables.
     """
 
     return dict(frequencies=[], labels=[], labels_de=[], missings=[], values=[])
@@ -101,11 +100,11 @@ def stats_cat(elem: dict, data: pd.DataFrame) -> dict:
     """Generate dict with statistics for categorical variables.
 
     Args:
-        elem (dict): Name, label, type and values of categorical variables.
-        data (pandas.DataFrame): Datatable of imported data.
+        elem: Name, label, type and values of categorical variables.
+        data: Datatable of imported data.
 
     Returns:
-        {...} (dict): Number of valid and invalid values.
+        Number of valid and invalid values.
     """
 
     total = data[elem["name"]].size
@@ -121,11 +120,11 @@ def stats_string(elem: dict, data: pd.DataFrame) -> dict:
     """Generate dict with statistics for nominal variables.
 
     Args:
-        elem (dict): Name, label and type of nominal variables.
-        data (pandas.DataFrame): Datatable of imported data.
+        elem: Name, label and type of nominal variables.
+        data: Datatable of imported data.
 
     Returns:
-        {...} (dict): Number of valid and invalid values.
+        Number of valid and invalid values.
     """
 
     frequencies = Counter(data[elem["name"]])
@@ -140,11 +139,11 @@ def stats_number(elem: dict, data: pd.DataFrame) -> dict:
     """Generate dict with statistics for numerical variables
 
     Args:
-        elem (dict): Name, label and type of numerical variables.
-        data (pandas.DataFrame): Datatable of imported data.
+        elem: Name, label and type of numerical variables.
+        data: Datatable of imported data.
 
     Returns:
-        {...} (dict): Calculations for numerical variables.
+        Calculations for numerical variables.
     """
 
     data_withoutmissings = data[data[elem["name"]] >= 0][elem["name"]]
@@ -171,12 +170,12 @@ def uni_statistics(elem: dict, data: pd.DataFrame) -> dict:
     """Call function to generate statistics depending on the variable type.
 
     Args:
-        elem (dict): Contains information of one variable.
-        data (pandas.DataFrame): Datatable of imported data.
+        elem: Contains information of one variable.
+        data: Datatable of imported data.
 
     Returns:
-        statistics (dict):
-        Statistics for either categorical, nominal or numerical variables.
+        statistics: Statistics for either categorical, nominal or
+        numerical variables.
     """
 
     if elem["type"] == "cat":
@@ -195,12 +194,12 @@ def uni(elem: dict, data: pd.DataFrame) -> OrderedDict:
     """Call function to generate frequencies depending on the variable type.
 
     Args:
-        elem (dict): Contains information of one variable.
-        data (pandas.DataFrame): Datatable of imported data.
+        elem: Contains information of one variable.
+        data: Datatable of imported data.
 
     Returns:
-        statistics (OrderedDict):
-        Statistics for either categorical, nominal or numerical variables.
+        statistics: Statistics for either categorical, nominal or
+        numerical variables.
     """
 
     statistics = OrderedDict()
@@ -220,13 +219,13 @@ def stat_dict(elem: dict, data: pd.DataFrame, metadata: dict, study: str) -> Ord
     """Fill variables with metadata of the dataset.
 
     Args:
-        elem (dict): Contains information of one variable.
-        data (pandas.DataFrame): Datatable of imported data.
-        metadata (dict): Metadata of the imported data.
-        study (str): Name of the study.
+        elem: Contains information of one variable.
+        data: Datatable of imported data.
+        metadata: Metadata of the imported data.
+        study: Name of the study.
 
     Returns:
-        meta_dict (OrderedDict): Combined calculations and meta information.
+        meta_dict: Combined calculations and meta information.
     """
 
     scale = elem["type"][0:3]
@@ -255,12 +254,12 @@ def generate_stat(data: pd.DataFrame, metadata: dict, study: str) -> list:
     """Prepare statistics for every variable.
 
     Args:
-        data (pandas.DataFrame): Datatable of imported data.
-        metadata (dict): Metadata of the imported data.
-        study (str): Name of the study.
+        data: Datatable of imported data.
+        metadata: Metadata of the imported data.
+        study: Name of the study.
 
     Returns:
-        stat (list): Combine calculations and meta information.
+        stat: Combine calculations and meta information.
     """
 
     stat = list()
@@ -280,10 +279,10 @@ def write_json(data: pd.DataFrame, metadata: dict, filename: str, study: str):
     """Main function to write json.
 
     Args:
-        data (pandas.DataFrame): Datatable of imported data.
-        metadata (dict): Metadata of the imported data.
-        filename (str): Name of the output json file.
-        study (str): Name of the study.
+        data: Datatable of imported data.
+        metadata: Metadata of the imported data.
+        filename: Name of the output json file.
+        study: Name of the study.
     """
 
     stat = generate_stat(data, metadata, study)
