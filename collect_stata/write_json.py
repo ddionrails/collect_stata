@@ -97,7 +97,7 @@ def uni_number() -> dict:
 
 
 def stats_cat(elem: dict, data: pd.DataFrame) -> dict:
-    """Generate dict with statistics for categorical variables.
+    """Generate dict with valid and invalid values for categorical variables.
 
     Args:
         elem: Name, label, type and values of categorical variables.
@@ -117,7 +117,7 @@ def stats_cat(elem: dict, data: pd.DataFrame) -> dict:
 
 
 def stats_string(elem: dict, data: pd.DataFrame) -> dict:
-    """Generate dict with statistics for nominal variables.
+    """Generate dict with valid and invalid values for nominal variables.
 
     Args:
         elem: Name, label and type of nominal variables.
