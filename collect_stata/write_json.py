@@ -231,13 +231,14 @@ def stat_dict(elem: dict, data: pd.DataFrame, metadata: dict, study: str) -> Ord
 
     scale = elem["type"][0:3]
 
-    meta_dict = OrderedDict()
-    meta_dict["study"] = study
-    meta_dict["dataset"] = metadata["name"]
-    meta_dict["name"] = elem["name"]
-    meta_dict["label"] = elem["label"]
-    meta_dict["scale"] = scale
-    meta_dict["categories"] = uni(elem, data)
+    meta_dict = OrderedDict(
+        study=study,
+        dataset=metadata["name"],
+        name=elem["name"],
+        label=elem["label"],
+        scale=scale,
+        categories=uni(elem, data),
+    )
 
     # For 10 or less values the statistics aren't shown.
     if elem["type"] in ("number", "cat"):
