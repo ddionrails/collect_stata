@@ -238,4 +238,4 @@ def write_json(
 
     logging.info('write "%s"', filename)
     with open(filename, "w") as json_file:
-        json.dump(stat, json_file, indent=2)
+        json.dump(stat, json_file, indent=2, ensure_ascii=False)
