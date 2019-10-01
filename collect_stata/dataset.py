@@ -32,7 +32,7 @@ class Dataset:
         """Method to read data in stata format.
 
         Args:
-            dta_name (str): Name of the data in stata format.
+            dta_name: Name of the data in stata format.
 
         Example:
             dataset.read_stata("../input/dataset.dta")
@@ -45,8 +45,8 @@ class Dataset:
         Method to write statistics from data in json/html format.
 
         Args:
-            output_name (str): Name of the output file.
-            study (str): Name of the study.
+            output_name: Name of the output file.
+            study: Name of the study.
 
         Example:
             dataset.write_json("../output/dataset.html")
