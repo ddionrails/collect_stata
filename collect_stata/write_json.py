@@ -175,7 +175,7 @@ def uni_statistics(elem: dict, data: pd.DataFrame) -> dict:
 
     Returns:
         statistics: Statistics for either categorical, nominal or
-        numerical variables.
+                    numerical variables.
     """
 
     if elem["type"] == "cat":
@@ -199,7 +199,7 @@ def uni(elem: dict, data: pd.DataFrame) -> OrderedDict:
 
     Returns:
         statistics: Statistics for either categorical, nominal or
-        numerical variables.
+                    numerical variables.
     """
 
     statistics = OrderedDict()
