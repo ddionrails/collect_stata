@@ -1,4 +1,4 @@
-"""read_stata.py"""
+"""Process stata dta files with pandas StataReader."""
 __author__ = "Marius Pahl"
 
 import pathlib
@@ -8,7 +8,7 @@ import pandas
 
 
 class StataDataExtractor:
-    """ Encapsulates extraction of metadata and data from a stata file
+    """Extract metadata and data from a stata file
 
     Args:
         file_name: The location of the stata file to be processed.
@@ -33,7 +33,7 @@ class StataDataExtractor:
         self.metadata: dict = dict()
 
     def parse_file(self):
-        """ Initiates the reading of the data and metadata. """
+        """Initiate reading of the data and metadata."""
         self.data = self.reader.read()
         self.metadata = self.generate_tdp()
 

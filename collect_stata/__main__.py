@@ -1,4 +1,4 @@
-"""__main__.py"""
+"""Contains everything that enables cli usage of the package."""
 __author__ = "Marius Pahl"
 
 import argparse
@@ -13,7 +13,7 @@ from collect_stata.write_json import write_json
 
 
 def main():
-    """ Implements cli argument parsing and initiates the data processing."""
+    """Provide cli argument parsing and initiate the data processing."""
 
     parser = argparse.ArgumentParser(
         description="Convert stata files to readable json files"
@@ -57,7 +57,8 @@ def main():
 
 
 def stata_to_json(study_name, input_path, output_path, run_parallel=True):
-    """
+    """Discover files to work on and handle top level data flow.
+
     Input:
     study_name: Name of the study
     input_path: path to data folder
@@ -92,7 +93,7 @@ def stata_to_json(study_name, input_path, output_path, run_parallel=True):
 
 
 def _run(file: pathlib.Path, output_path: pathlib.Path, study_name: str) -> None:
-    """Helper function that can be run in parallel."""
+    """Encapsulate data processing run with multiprocessing."""
     file_path = output_path.joinpath(file.stem).with_suffix(".json")
 
     stata_data = StataDataExtractor(file)
