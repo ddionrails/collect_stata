@@ -44,6 +44,36 @@ class StataDataExtractor:
         self.data = self.reader.read()
         self.metadata = self.generate_tdp()
 
+    def get_variable_metadata(self) -> List[Dict[str, Union[str, Dict[str, List]]]]:
+        """Gather metadata about variables in the data.
+
+        Stores computed metadata in the attribute metadata.
+        If metadata was already filled by a previous run, the metadata will not
+        be collected again. Instead it will return metadata.
+
+        Returns:
+            A list with a dictionary for every variable.
+            For a detailed description of the dictionary see the test documentation
+            for this at collect_stata.tests.test_read_stata
+        """
+
+        if self.metadata:
+            return self.metadata
+
+        variable_labels = self.reader.variable_labels()
+        value_labels = self.reader.value_labels()
+        for variable in self.reader.varlist:
+            variable_meta = dict()
+            variable_meta["name"] = variable
+            variable_meta["label"] = variable_labels.get(variable, None)
+            variable_meta["categories"] = {"values": [], "labels": []}
+            for value, label in value_labels[variable].items():
+                variable_meta["categories"]["values"].append(value)
+                variable_meta["categories"]["labels"].append(label)
+            self.metadata.append(variable_meta)
+
+        return self.metadata
+
     def generate_tdp(self):
         """
         Generate tabular data package file
