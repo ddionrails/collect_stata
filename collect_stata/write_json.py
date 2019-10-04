@@ -275,7 +275,8 @@ def write_json(data, metadata, filename, study=""):
                     {
                         "name": "variable_name",
                         "label": "variable_label",
-                        "type": "category"
+                        "type": "category",
+                        "scale": "cat",
                         "categories": {
                             "values": [-1, 1],
                             "labels": ["[-1] invalid", "[1] valid"],
