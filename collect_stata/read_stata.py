@@ -1,114 +1,120 @@
-"""Read data and metadata from stata files.
-
-This module creates a data table and a metadata dictionary.
-"""
+"""Process stata dta files with pandas StataReader."""
 __author__ = "Marius Pahl"
 
-import logging
 import pathlib
 import re
+from typing import Dict, List
 
-import pandas as pd
-
-
-def cat_values(varscale: dict, data: pd.io.stata.StataReader) -> list:
-    """Extract categorical metadata from stata files.
-
-    Args:
-        varscale (dict): Dictionary of the scale of the variables.
-        data (pandas.io.stata.StataReader): Imported dataset.
-
-    Returns:
-        cat_list (list): List of categorical variables with labels.
-    """
-
-    cat_list = list()
-    label_dict = data.value_labels()
-
-    for label in data.lbllist:
-        if label == varscale["name"]:
-            value_labels = label_dict[label]
-
-    for value, label in value_labels.items():
-        cat_list.append(dict(value=int(value), label=label))
-
-    return cat_list
+import pandas
 
 
-def scale_var(varname: str, varscale: dict, datatable: pd.DataFrame) -> str:
-    """Rename types of variables to cat, number and string.
+class StataDataExtractor:
+    """Extract metadata and data from a stata file
 
     Args:
-        varname (str): Name of the variable.
-        varscale (dict): Dictionary of the scale of the variables.
-        datatable (pandas.DataFrame): Imported dataset.
+        file_name: The location of the stata file to be processed.
 
-    Returns:
-        var_type (str): Returns the type of the variable, either cat, number or string.
+    Attributes:
+        file_name: The location of the stata file to be processed.
+        reader: The reader object created withe the stata file.
+                Metadata is obtained from this object. Actual data is
+                read from it into a pandas.DataFrame.
+        data: The actual data parsed from the stata file. Is initiated empty.
+                To parse the data, the method parse_file() has to be called.
+        metadata: The metadata obtained from the reader. Is initiated empty.
+                    To parse the data, the method parse_file() has to be called.
     """
 
-    if varscale["name"] != "":
-        return "cat"
-    var_type = str(datatable[varname].dtype)
-    match_float = re.search(r"float\d*", var_type)
-    match_int = re.search(r"int\d*", var_type)
-    if match_float or match_int:
-        var_type = "number"
-    if var_type == "object":
-        var_type = "string"
-    return var_type
+    def __init__(self, file_name: pathlib.Path):
+        self.file_name: pathlib.Path = file_name
+        self.reader: pandas.io.stata.StataReader = pandas.read_stata(
+            file_name, iterator=True, convert_categoricals=False
+        )
+        self.data: pandas.DataFrame = pandas.DataFrame()
+        self.metadata: dict = dict()
 
+    def parse_file(self):
+        """Initiate reading of the data and metadata."""
+        self.data = self.reader.read()
+        self.metadata = self.generate_tdp()
 
-def generate_tdp(data: pd.io.stata.StataReader, stata_name: str) -> (pd.DataFrame, dict):
-    """Generate tabular data package file.
+    def generate_tdp(self):
+        """Generate tabular data package file.
 
-    Args:
-        stata_name (str): Name of the stata file.
-        data (pandas.io.stata.StataReader): Raw data.
+        Returns:
+            datatable (pandas.DataFrame): Extracted data.
+            metadata (dict): Meta information for the data.
+        """
 
-    Returns:
-        datatable (pandas.DataFrame): Extracted data.
-        metadata (dict): Meta information for the data.
-    """
+        variables = self.reader.varlist
 
-    variables = data.varlist
-    varlabels = data.variable_labels()
-    datatable = data.read()
-    dataset_name = pathlib.Path(stata_name).stem
-    metadata = {}
-    fields = []
-    varscales = [
-        dict(name=varscale, sn=number) for number, varscale in enumerate(data.lbllist)
-    ]
+        varlabels = self.reader.variable_labels()
 
-    for varname, varscale in zip(variables, varscales):
-        scale = scale_var(varname, varscale, datatable)
-        meta = dict(name=varname, label=varlabels[varname], type=scale)
-        if scale == "cat":
-            meta["values"] = cat_values(varscale, data)
+        varscales = [
+            dict(name=varscale, sn=number)
+            for number, varscale in enumerate(self.reader.lbllist)
+        ]
 
-        fields.append(meta)
+        dataset_name = pathlib.Path(self.file_name).stem
 
-    schema = dict(fields=fields)
-    resources = [dict(path=stata_name, schema=schema)]
-    metadata.update(dict(name=dataset_name, resources=resources))
+        tdp = {}
+        fields = []
 
-    return datatable, metadata
+        for var, varscale in zip(variables, varscales):
+            scale = self.get_variable_type(var, varscale)
+            meta = dict(name=var, label=varlabels[var], type=scale)
+            if scale == "cat":
+                meta["values"] = self.extract_category_value_labels(varscale)
 
+            fields.append(meta)
 
-def read_stata(stata_name: str) -> (pd.DataFrame, dict):
-    """Logging and reading stata files.
+        schema = dict(fields=fields)
 
-    Args:
-        stata_name (str): Name of the stata file.
+        resources = [dict(path=self.file_name, schema=schema)]
 
-    Returns:
-        datatable (pandas.DataFrame): Extracted data.
-        metadata (dict): Meta information for the data.
-    """
+        tdp.update(dict(name=dataset_name, resources=resources))
 
-    logging.info('read "%s"', stata_name)
-    data = pd.read_stata(stata_name, iterator=True, convert_categoricals=False)
-    datatable, metadata = generate_tdp(data, stata_name)
+        return tdp
 
-    return datatable, metadata
+    def get_variable_type(self, variable_name: str, varscale: dict) -> str:
+        """Rename types of variables to cat, number and string.
+
+        Args:
+            variable_name: Name of the variable.
+            varscale: Dictionary of the scale of the variables.
+        Returns:
+            The type of the variable, either cat, number or string.
+        """
+
+        if varscale["name"] != "":
+            return "cat"
+        var_type = str(self.data[variable_name].dtype)
+        match_float = re.search(r"float\d*", var_type)
+        match_int = re.search(r"int\d*", var_type)
+        if match_float or match_int:
+            var_type = "number"
+        if var_type == "object":
+            var_type = "string"
+        return var_type
+
+    def extract_category_value_labels(self, varscale) -> List[Dict[str, str]]:
+        """Extract categorical metadata from stata files.
+
+        Args:
+            varscale (dict): Dictionary of the scale of the variables.
+        Returns:
+            List of categorical variables with labels.
+        """
+
+        cat_list = list()
+
+        label_dict = self.reader.value_labels()
+
+        for label in self.reader.lbllist:
+            if label == varscale["name"]:
+                value_labels = label_dict[label]
+
+        for value, label in value_labels.items():
+            cat_list.append(dict(value=int(value), label=label))
+
+        return cat_list
