@@ -266,11 +266,28 @@ def generate_stat(data, metadata, study):
 def write_json(data, metadata, filename, study=""):
     """Main function to write json.
 
-    Input:
-    data: pandas DataFrame (later called file_csv)
-    metadata: dict (later called file_json)
-    filename: string
-    study: string
+    TODO: this function should be able to handel a list as metadata input.
+    This list will contain a dictionary for ever variable of a dataset.
+    Example:
+        .. code-block:: python
+
+            [
+                    {
+                        "name": "variable_name",
+                        "label": "variable_label",
+                        "type": "category"
+                        "categories": {
+                            "values": [-1, 1],
+                            "labels": ["[-1] invalid", "[1] valid"],
+                        },
+                    }
+            ]
+
+    Args:
+        data: Datatable of imported data.
+        metadata: Metadata of the imported data.
+        filename: Name of the output json file.
+        study: Name of the study.
     """
 
     stat = generate_stat(data, metadata, study)
