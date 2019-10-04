@@ -1,5 +1,4 @@
-"""Write calculations and metadata out as a json file.
-"""
+"""Write calculations and metadata out as a json file."""
 __author__ = "Marius Pahl"
 
 import json

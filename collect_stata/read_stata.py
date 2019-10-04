@@ -36,14 +36,13 @@ class StataDataExtractor:
     def parse_file(self):
         """Initiate reading of the data and metadata."""
         self.data = self.reader.read()
-        self.metadata = self.generate_tdp()
+        self.metadata = self.extract_metadata()
 
-    def generate_tdp(self):
-        """Generate tabular data package file.
+    def extract_metadata(self) -> dict:
+        """Get metadata information and return a dict.
 
         Returns:
-            datatable (pandas.DataFrame): Extracted data.
-            metadata (dict): Meta information for the data.
+            metadata: Contains datasetname, inputpath and var- and valuelabels
         """
 
         variables = self.reader.varlist
@@ -57,7 +56,7 @@ class StataDataExtractor:
 
         dataset_name = pathlib.Path(self.file_name).stem
 
-        tdp = {}
+        metadata = {}
         fields = []
 
         for var, varscale in zip(variables, varscales):
@@ -72,12 +71,12 @@ class StataDataExtractor:
 
         resources = [dict(path=self.file_name, schema=schema)]
 
-        tdp.update(dict(name=dataset_name, resources=resources))
+        metadata.update(dict(name=dataset_name, resources=resources))
 
-        return tdp
+        return metadata
 
     def get_variable_type(self, variable_name: str, varscale: dict) -> str:
-        """Rename types of variables to cat, number and string.
+        """Exctract variable type and return it as string.
 
         Args:
             variable_name: Name of the variable.
