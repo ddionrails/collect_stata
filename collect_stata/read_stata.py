@@ -3,8 +3,10 @@ __author__ = "Marius Pahl"
 
 import pathlib
 import re
+from typing import Dict, List, Union
 
 import pandas
+import pandas.io.stata
 
 
 class StataDataExtractor:
@@ -24,13 +26,18 @@ class StataDataExtractor:
                     To parse the data, the method parse_file() has to be called.
     """
 
+    file_name: pathlib.Path
+    reader: pandas.io.stata.StataReader
+    data: pandas.DataFrame
+    metadata: List[Dict[str, Union[str, Dict[str, List]]]]
+
     def __init__(self, file_name: pathlib.Path):
-        self.file_name: pathlib.Path = file_name
-        self.reader: pandas.io.stata.StataReader = pandas.read_stata(
+        self.file_name = file_name
+        self.reader = pandas.read_stata(
             file_name, iterator=True, convert_categoricals=False
         )
-        self.data: pandas.DataFrame = pandas.DataFrame()
-        self.metadata: dict = dict()
+        self.data = pandas.DataFrame()
+        self.metadata = list()
 
     def parse_file(self):
         """Initiate reading of the data and metadata."""
