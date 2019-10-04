@@ -86,7 +86,7 @@ def stata_to_json(study_name, input_path, output_path, run_parallel=True):
             _run(file=file, output_path=output_path, study_name=study_name)
 
     duration = time.time() - start_time
-    logging.info(f"Duration {duration:.5f} seconds")  # pylint: disable=W1202
+    logging.info("Duration {:.5f} seconds".format(duration))
 
 
 def _run(file: pathlib.Path, output_path: pathlib.Path, study_name: str) -> None:
