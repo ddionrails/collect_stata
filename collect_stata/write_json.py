@@ -38,6 +38,17 @@ def uni_cat(elem, data):
     frequencies = []
 
     value_count = data[elem["name"]].value_counts()
+
+    # If values are not labeled in categorical variables, values become value and label
+    for value in value_count.index:
+        if value not in elem["categories"]["values"]:
+            elem["categories"]["values"].append(int(value))
+            elem["categories"]["labels"].append(str(int(value)))
+            if value < 0:
+                elem["categories"]["missings"].append(True)
+            else:
+                elem["categories"]["missings"].append(False)
+
     for value in elem["categories"]["values"]:
         try:
             frequencies.append(int(value_count[value]))
@@ -215,49 +226,31 @@ def generate_stat(data, metadata, study):
 def write_json(data, metadata, filename, study):
     """Main function to write json.
 
-    TODO: this function should be able to handel a list as metadata input.
-    This list will contain a dictionary for ever variable of a dataset.
-    Example:
-        .. code-block:: python
-
-            [
-                    {
-                        "name": "variable_name",
-                        "label": "variable_label",
-                        "type": "category",
-                        "scale": "cat",
-                        "categories": {
-                            "values": [-1, 1],
-                            "labels": ["[-1] invalid", "[1] valid"],
-                        },
-                    }
-            ]
-
-        metadata_new = [
-            {
-                "name": "HKIND",
-                "label": "Kinder",
-                "type": "category",
-                "scale": "cat",
-                "categories": {
-                    "values": [-1, 1, 2],
-                    "labels": ["keine Antwort", "Ja", "Nein"],
-                    "missings": [True, False, False],
-                },
+    metadata_test = [
+        {
+            "name": "HKIND",
+            "label": "test for categorical var",
+            "type": "category",
+            "scale": "cat",
+            "categories": {
+                "values": [-1, 1, 2],
+                "labels": ["missing", "yes", "no"],
+                "missings": [True, False, False],
             },
-            {
-                "name": "HM04",
-                "label": "Miete in Euro",
-                "type": "int",
-                "scale": "number",
-            },
-            {
-                "name": "HKGEBA",
-                "label": "test for string var",
-                "type": "str",
-                "scale": "string",
-            }
-        ]
+        },
+        {
+            "name": "HM04",
+            "label": "test for numerical var",
+            "type": "int",
+            "scale": "number",
+        },
+        {
+            "name": "HKGEBA",
+            "label": "test for string var",
+            "type": "str",
+            "scale": "string",
+        }
+    ]
 
     Args:
         data: Datatable of imported data.
