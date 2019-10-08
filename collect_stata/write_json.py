@@ -8,23 +8,7 @@ from collections import Counter, OrderedDict
 import pandas as pd
 
 
-def sorting_dataframe(values, labels, missings, frequencies):
-    """Function to sort values and labels and return sorted dict"""
-    dataframe = pd.DataFrame(
-        {
-            "values": values,
-            "labels": labels,
-            "missings": missings,
-            "frequencies": frequencies,
-        }
-    )
-    dataframe["labels"] = dataframe["labels"].astype(str)
-    dataframe["values"] = pd.to_numeric(dataframe["values"])
-    dataframe.sort_values(by="values", inplace=True)
-    return dataframe.to_dict("list")
-
-
-def uni_cat(elem, data):
+def uni_cat(elem: dict, data: pd.DataFrame) -> dict:
     """Generate dict with frequencies and labels for categorical variables
 
     Input:
@@ -58,27 +42,27 @@ def uni_cat(elem, data):
     return {"frequencies": frequencies}
 
 
-def uni_string():
+def uni_string() -> dict:
     """Generate dict with frequencies for nominal variables
 
     Output:
     OrderedDict
     """
 
-    return OrderedDict(frequencies=[], labels=[], labels_de=[], missings=[], values=[])
+    return dict(frequencies=[], labels=[], labels_de=[], missings=[], values=[])
 
 
-def uni_number():
+def uni_number() -> dict:
     """Generate dict with frequencies for numerical variables
 
     Output:
     OrderedDict
     """
 
-    return OrderedDict(frequencies=[], labels=[], labels_de=[], missings=[], values=[])
+    return dict(frequencies=[], labels=[], labels_de=[], missings=[], values=[])
 
 
-def stats_cat(elem, data):
+def stats_cat(elem: dict, data: pd.DataFrame) -> dict:
     """Generate dict with statistics for categorical variables
 
     Input:
@@ -98,7 +82,7 @@ def stats_cat(elem, data):
     return {"valid": valid, "invalid": invalid}
 
 
-def stats_string(elem, data):
+def stats_string(elem: dict, data: pd.DataFrame) -> dict:
     """Generate dict with statistics for nominal variables
 
     Input:
@@ -116,7 +100,7 @@ def stats_string(elem, data):
     return {"valid": int(valid), "invalid": int(invalid)}
 
 
-def stats_number(elem, data):
+def stats_number(elem: dict, data: pd.DataFrame) -> dict:
     """Generate dict with statistics for numerical variables
 
     Input:
@@ -148,7 +132,7 @@ def stats_number(elem, data):
     }
 
 
-def uni_statistics(elem, data):
+def uni_statistics(elem: dict, data: pd.DataFrame) -> dict:
     """Call function to generate statistics depending on the variable type
 
     Input:
@@ -177,7 +161,7 @@ def uni_statistics(elem, data):
     return statistics
 
 
-def uni(elem, data):
+def uni(elem: dict, data: pd.DataFrame) -> OrderedDict:
     """Call function to generate frequencies depending on the variable type
 
     Input:
@@ -201,7 +185,7 @@ def uni(elem, data):
     return statistics
 
 
-def generate_stat(data, metadata, study):
+def generate_stat(data: pd.DataFrame, metadata: dict, study: str) -> list:
     """Prepare statistics for every variable
 
     Input:
@@ -223,7 +207,7 @@ def generate_stat(data, metadata, study):
     return metadata
 
 
-def write_json(data, metadata, filename, study):
+def write_json(data: pd.DataFrame, metadata: dict, filename: str, study: str):
     """Main function to write json.
 
     metadata_test = [
