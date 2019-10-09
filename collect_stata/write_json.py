@@ -197,7 +197,11 @@ def generate_statistics(
 
 
 def write_json(
-    data: pd.DataFrame, metadata: List[Variable], filename: pathlib.Path, study: str
+    data: pd.DataFrame,
+    metadata: List[Variable],
+    filename: pathlib.Path,
+    study: str,
+    latin1: bool,
 ) -> None:
     """Main function to write json.
 
@@ -237,5 +241,17 @@ def write_json(
     stat = generate_statistics(data, metadata, study)
 
     logging.info('write "%s"', filename)
-    with open(filename, "w") as json_file:
+    # Pandas decodes data with Latin-1
+    # The source will be decoded incorrectly,
+    # if the source files are UTF-8 or anything other than Latin-1.
+    # The data is encoded back to Latin-1 here
+    # to minimize en/decoding errors.
+    # This decode encode circle will most likely leave the original encoding intact.
+    # If the source is actually a real Latin-1 encoded file, writing it back into Latin-1
+    # will also make the output a Latin-1 file. We do not want this.
+    # But since, in this case, the source was correctly decoded by pandas, we can just
+    # write the file with UTF-8 encoding.
+    # TL;DR: if the source is Latin-1 encoded we can safely use utf-8 for writing output.
+    encoding = "utf-8" if latin1 else "latin1"
+    with open(filename, "w+", encoding=encoding) as json_file:
         json.dump(stat, json_file, indent=2, ensure_ascii=False)
