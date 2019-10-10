@@ -11,10 +11,11 @@ from collect_stata.__main__ import main
 
 
 def test_cli_without_arguments():
-    """Test main exits with code 2, when no arguments are given."""
-    with pytest.raises(SystemExit) as caught_exit:
-        main()
-    assert caught_exit.value.code == 2
+    """Test main exits with code 1, when no arguments are given."""
+    with patch.object(sys, "argv", ["__main__.py"]):
+        with pytest.raises(SystemExit) as caught_exit:
+            main()
+    assert caught_exit.value.code == 1
 
 
 def test_cli_with_required_arguments():
