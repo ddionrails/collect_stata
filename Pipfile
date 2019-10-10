@@ -12,6 +12,7 @@ pyroma = "*"
 pytest = "==5.0.1"
 pytest-cov = "*"
 deepdiff = "*"
+mypy = "*"
 
 [requires]
 python_version = "3.6"
