@@ -1,4 +1,5 @@
 """Unittests for the collect_stata.read_stata module"""
+import pathlib
 import unittest
 from typing import Dict, List, Union
 from unittest.mock import patch
@@ -27,11 +28,12 @@ class MockedStataReader:
         return {"variable_name": "variable_label"}
 
     @staticmethod
-    def expected_metadata() -> List[Dict[str, Union[str, Dict[str, List]]]]:
+    def expected_metadata(dataset_name) -> List[Dict[str, Union[str, Dict[str, List]]]]:
         """Give the full metadata set which should be expected as test result."""
         return [
             {
                 "name": "variable_name",
+                "dataset": dataset_name,
                 "label": "variable_label",
                 "scale": "cat",
                 "categories": {
@@ -62,8 +64,11 @@ class TestMetadataFunctions(unittest.TestCase):
                           A label needs to be at the same index position as
                           its corresponding value inside the values list.
         """
+        dataset_name = "test"
+        dataset_path = pathlib.Path(dataset_name).with_suffix(".dta")
+        dataset_path = pathlib.Path("/tmp").joinpath(dataset_path)
         with patch.object(pandas, attribute="read_stata", return_value=MockedStataReader):
-            data_extractor = StataDataExtractor("")
+            data_extractor = StataDataExtractor(dataset_path)
             result = data_extractor.get_variable_metadata()
 
         # We deepdiff both structures to ensure, that they contain the same content
@@ -71,5 +76,5 @@ class TestMetadataFunctions(unittest.TestCase):
         # The diff should be empty, giving a {} that evaluates to False.
         # Otherwise it contains information about the difference which should be
         # usefull in the test output.
-        diff = DeepDiff(MockedStataReader.expected_metadata(), result)
+        diff = DeepDiff(MockedStataReader.expected_metadata(dataset_name), result)
         self.assertTrue(expr=(not diff), msg=str(diff))

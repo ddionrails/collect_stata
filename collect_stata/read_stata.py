@@ -62,11 +62,16 @@ class StataDataExtractor:
         if self.metadata:
             return self.metadata
 
+        dataset = pathlib.Path(self.file_name).stem
+
         variable_labels = self.reader.variable_labels()
         value_labels = self.reader.value_labels()
         for variable in self.reader.varlist:
             variable_meta = dict()
             variable_meta["name"] = variable
+            # TODO: Setting dataset for every variable creates a lot of redundancy.
+            # It should be removed in the future.
+            variable_meta["dataset"] = dataset
             variable_meta["label"] = variable_labels.get(variable, None)
             variable_meta["categories"] = {"values": [], "labels": []}
             for value, label in value_labels.get(variable, dict()).items():
