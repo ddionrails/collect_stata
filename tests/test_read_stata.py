@@ -3,6 +3,7 @@ import unittest
 from typing import Dict, List, Union
 from unittest.mock import patch
 
+import numpy
 import pandas
 from deepdiff import DeepDiff
 
@@ -12,7 +13,8 @@ from collect_stata.read_stata import StataDataExtractor
 class MockedStataReader:
     """Implement StataReader functions needed for tests; provide test data."""
 
-    varlist: list = ["variable_name"]
+    varlist: List[str] = ["variable_name"]
+    dtypelist: List[object] = [numpy.int8]
 
     @staticmethod
     def value_labels() -> Dict[str, Dict[int, str]]:
@@ -31,6 +33,7 @@ class MockedStataReader:
             {
                 "name": "variable_name",
                 "label": "variable_label",
+                "scale": "cat",
                 "categories": {
                     "values": [-1, 1],
                     "labels": ["[-1] invalid", "[1] valid"],
