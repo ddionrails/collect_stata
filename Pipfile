@@ -9,8 +9,9 @@ jsonschema = "*"
 pre-commit = "*"
 pylint = "*"
 pyroma = "*"
-pytest = "*"
+pytest = "==5.0.1"
 pytest-cov = "*"
+deepdiff = "*"
 
 [requires]
 python_version = "3.6"
