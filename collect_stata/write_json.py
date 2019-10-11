@@ -8,7 +8,7 @@ from collections import Counter, OrderedDict
 import pandas as pd
 
 
-def uni_cat(elem: dict, data: pd.DataFrame) -> dict:
+def frequencies_category(elem: dict, data: pd.DataFrame) -> dict:
     """Generate dict with frequencies and labels for categorical variables
 
     Input:
@@ -42,7 +42,7 @@ def uni_cat(elem: dict, data: pd.DataFrame) -> dict:
     return {"frequencies": frequencies}
 
 
-def uni_string() -> dict:
+def frequencies_string() -> dict:
     """Generate dict with frequencies for nominal variables
 
     Output:
@@ -52,7 +52,7 @@ def uni_string() -> dict:
     return dict(frequencies=[], labels=[], labels_de=[], missings=[], values=[])
 
 
-def uni_number() -> dict:
+def frequencies_number() -> dict:
     """Generate dict with frequencies for numerical variables
 
     Output:
@@ -62,7 +62,7 @@ def uni_number() -> dict:
     return dict(frequencies=[], labels=[], labels_de=[], missings=[], values=[])
 
 
-def stats_cat(elem: dict, data: pd.DataFrame) -> dict:
+def statistics_category(elem: dict, data: pd.DataFrame) -> dict:
     """Generate dict with statistics for categorical variables
 
     Input:
@@ -82,7 +82,7 @@ def stats_cat(elem: dict, data: pd.DataFrame) -> dict:
     return {"valid": valid, "invalid": invalid}
 
 
-def stats_string(elem: dict, data: pd.DataFrame) -> dict:
+def statistics_string(elem: dict, data: pd.DataFrame) -> dict:
     """Generate dict with statistics for nominal variables
 
     Input:
@@ -100,7 +100,7 @@ def stats_string(elem: dict, data: pd.DataFrame) -> dict:
     return {"valid": int(valid), "invalid": int(invalid)}
 
 
-def stats_number(elem: dict, data: pd.DataFrame) -> dict:
+def statistics_number(elem: dict, data: pd.DataFrame) -> dict:
     """Generate dict with statistics for numerical variables
 
     Input:
@@ -132,7 +132,7 @@ def stats_number(elem: dict, data: pd.DataFrame) -> dict:
     }
 
 
-def uni_statistics(elem: dict, data: pd.DataFrame) -> dict:
+def univariate_statistics(elem: dict, data: pd.DataFrame) -> dict:
     """Call function to generate statistics depending on the variable type
 
     Input:
@@ -145,15 +145,15 @@ def uni_statistics(elem: dict, data: pd.DataFrame) -> dict:
 
     if elem["scale"] == "cat":
 
-        statistics = stats_cat(elem, data)
+        statistics = statistics_category(elem, data)
 
     elif elem["scale"] == "string":
 
-        statistics = stats_string(elem, data)
+        statistics = statistics_string(elem, data)
 
     elif elem["scale"] == "number":
 
-        statistics = stats_number(elem, data)
+        statistics = statistics_number(elem, data)
 
     else:
         statistics = dict()
@@ -161,7 +161,7 @@ def uni_statistics(elem: dict, data: pd.DataFrame) -> dict:
     return statistics
 
 
-def uni(elem: dict, data: pd.DataFrame) -> OrderedDict:
+def value_count_and_frequencies(elem: dict, data: pd.DataFrame) -> OrderedDict:
     """Call function to generate frequencies depending on the variable type
 
     Input:
@@ -174,10 +174,10 @@ def uni(elem: dict, data: pd.DataFrame) -> OrderedDict:
 
     statistics = OrderedDict()
     _scale = elem["scale"]
-    scale_functions = {"string": uni_string, "number": uni_number}
+    scale_functions = {"string": frequencies_string, "number": frequencies_number}
 
     if _scale == "cat":
-        statistics.update(uni_cat(elem, data))
+        statistics.update(frequencies_category(elem, data))
     # We change this to else, if no other types exist
     elif _scale in scale_functions:
         statistics.update(scale_functions[_scale]())
@@ -185,7 +185,7 @@ def uni(elem: dict, data: pd.DataFrame) -> OrderedDict:
     return statistics
 
 
-def generate_stat(data: pd.DataFrame, metadata: dict, study: str) -> list:
+def generate_statistics(data: pd.DataFrame, metadata: dict, study: str) -> list:
     """Prepare statistics for every variable
 
     Input:
@@ -200,9 +200,9 @@ def generate_stat(data: pd.DataFrame, metadata: dict, study: str) -> list:
     for i, elem in enumerate(metadata):
         logging.info("%s/%s", str(i + 1), str(len(metadata)))
         metadata[i]["study"] = study
-        metadata[i].update({"statistics": uni_statistics(elem, data)})
+        metadata[i].update({"statistics": univariate_statistics(elem, data)})
         if elem["scale"] == "cat":
-            metadata[i]["categories"].update(uni(elem, data))
+            metadata[i]["categories"].update(value_count_and_frequencies(elem, data))
 
     return metadata
 
@@ -243,7 +243,7 @@ def write_json(data: pd.DataFrame, metadata: dict, filename: str, study: str):
         study: Name of the study.
     """
 
-    stat = generate_stat(data, metadata, study)
+    stat = generate_statistics(data, metadata, study)
 
     logging.info('write "%s"', filename)
     with open(filename, "w") as json_file:
