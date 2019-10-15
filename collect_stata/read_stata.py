@@ -69,7 +69,6 @@ class StataDataExtractor:
         for variable in self.reader.varlist:
             variable_meta = dict()
             variable_meta["name"] = variable
-            # TODO: Setting dataset for every variable creates a lot of redundancy.
             # It should be removed in the future.
             variable_meta["dataset"] = dataset
             variable_meta["label"] = variable_labels.get(variable, None)
