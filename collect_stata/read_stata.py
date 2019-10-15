@@ -117,53 +117,6 @@ class StataDataExtractor:
             return "string"
         return str(variable_dtype)
 
-    def generate_tdp(self):
-        """
-        Generate tabular data package file
-
-        Input:
-        datatable: pandas DataFrame
-        stata_name: string
-        data: pandas StataReader
-
-        Output:
-        tdp: dict
-        """
-        warnings.warn(
-            "This method creates an old datastructure and will be deprecated.",
-            DeprecationWarning,
-        )
-
-        variables = self.reader.varlist
-
-        varlabels = self.reader.variable_labels()
-
-        varscales = [
-            dict(name=varscale, sn=number)
-            for number, varscale in enumerate(self.reader.lbllist)
-        ]
-
-        dataset_name = pathlib.Path(self.file_name).stem
-
-        tdp = {}
-        fields = []
-
-        for var, varscale in zip(variables, varscales):
-            scale = self.cat_val(var, varscale)
-            meta = dict(name=var, label=varlabels[var], type=scale)
-            if scale == "cat":
-                meta["values"] = self.extract_category_value_labels(varscale)
-
-            fields.append(meta)
-
-        schema = dict(fields=fields)
-
-        resources = [dict(path=self.file_name, schema=schema)]
-
-        tdp.update(dict(name=dataset_name, resources=resources))
-
-        return tdp
-
     def cat_val(self, var: str, varscale: dict):
         """
         Select vartype
