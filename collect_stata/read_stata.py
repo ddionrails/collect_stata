@@ -69,7 +69,6 @@ class StataDataExtractor:
         for variable in self.reader.varlist:
             variable_meta = dict()
             variable_meta["name"] = variable
-            # It should be removed in the future.
             variable_meta["dataset"] = dataset
             variable_meta["label"] = variable_labels.get(variable, None)
             variable_meta["categories"] = {"values": [], "labels": []}
