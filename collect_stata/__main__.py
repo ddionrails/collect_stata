@@ -12,7 +12,7 @@ from collect_stata.read_stata import StataDataExtractor
 from collect_stata.write_json import write_json
 
 
-def main():
+def main() -> None:
     """Provide cli argument parsing and initiate the data processing."""
 
     parser = argparse.ArgumentParser(
@@ -56,7 +56,12 @@ def main():
     )
 
 
-def stata_to_json(study_name, input_path, output_path, run_parallel=True):
+def stata_to_json(
+    study_name: str,
+    input_path: pathlib.Path,
+    output_path: pathlib.Path,
+    run_parallel: bool = True,
+) -> None:
     """Discover files to work on and handle top level data flow.
 
     Input:

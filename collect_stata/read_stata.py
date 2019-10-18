@@ -2,7 +2,6 @@
 __author__ = "Marius Pahl"
 
 import pathlib
-import re
 import warnings
 from typing import Dict, List, Union
 
@@ -31,7 +30,7 @@ class StataDataExtractor:
     file_name: pathlib.Path
     reader: pandas.io.stata.StataReader
     data: pandas.DataFrame
-    metadata: List[Dict[str, Union[str, Dict[str, List]]]]
+    metadata: List[Dict[str, Union[str, Dict[str, List[Union[int, str, bool]]]]]]
 
     def __init__(self, file_name: pathlib.Path):
         self.file_name = file_name
@@ -41,12 +40,14 @@ class StataDataExtractor:
         self.data = pandas.DataFrame()
         self.metadata = list()
 
-    def parse_file(self):
+    def parse_file(self) -> None:
         """Initiate reading of the data and metadata."""
         self.data = self.reader.read()
         self.metadata = self.get_variable_metadata()
 
-    def get_variable_metadata(self) -> List[Dict[str, Union[str, Dict[str, List]]]]:
+    def get_variable_metadata(
+        self
+    ) -> List[Dict[str, Union[str, Dict[str, List[Union[int, str, bool]]]]]]:
         """Gather metadata about variables in the data.
 
         Stores computed metadata in the attribute metadata.
@@ -116,52 +117,3 @@ class StataDataExtractor:
         if variable_dtype == "object":
             return "string"
         return str(variable_dtype)
-
-    def cat_val(self, var: str, varscale: dict):
-        """
-        Select vartype
-
-        Input:
-        var: string
-        varscale: dict
-        datatable: pandas DataFrame
-
-        Output:
-        var_type: string
-        """
-
-        if varscale["name"] != "":
-            return "cat"
-        var_type = str(self.data[var].dtype)
-        match_float = re.search(r"float\d*", var_type)
-        match_int = re.search(r"int\d*", var_type)
-        if match_float or match_int:
-            var_type = "number"
-        if var_type == "object":
-            var_type = "string"
-        return var_type
-
-    def extract_category_value_labels(self, varscale):
-        """
-        Extract categorical metadata from stata files
-
-        Input:
-        varscale: dict
-        data: pandas StataReader
-
-        Output:
-        cat_list: list
-        """
-
-        cat_list = list()
-
-        label_dict = self.reader.value_labels()
-
-        for label in self.reader.lbllist:
-            if label == varscale["name"]:
-                value_labels = label_dict[label]
-
-        for value, label in value_labels.items():
-            cat_list.append(dict(value=int(value), label=label))
-
-        return cat_list

@@ -3,12 +3,16 @@ __author__ = "Marius Pahl"
 
 import json
 import logging
+import pathlib
 from collections import Counter, OrderedDict
+from typing import Dict, List, Union
 
 import pandas as pd
 
 
-def get_categorical_frequencies(elem: dict, data: pd.DataFrame) -> dict:
+def get_categorical_frequencies(
+    elem: Dict[str, Dict[str, List[Union[int, str, bool]]]], data: pd.DataFrame
+) -> Dict[str, List[int]]:
     """Generate dict with frequencies and labels for categorical variables
 
     Input:
@@ -42,27 +46,10 @@ def get_categorical_frequencies(elem: dict, data: pd.DataFrame) -> dict:
     return {"frequencies": frequencies}
 
 
-def get_nominal_frequencies() -> dict:
-    """Generate dict with frequencies for nominal variables
-
-    Output:
-    OrderedDict
-    """
-
-    return dict(frequencies=[], labels=[], labels_de=[], missings=[], values=[])
-
-
-def get_numerical_frequencies() -> dict:
-    """Generate dict with frequencies for numerical variables
-
-    Output:
-    OrderedDict
-    """
-
-    return dict(frequencies=[], labels=[], labels_de=[], missings=[], values=[])
-
-
-def get_categorical_statistics(elem: dict, data: pd.DataFrame) -> dict:
+def get_categorical_statistics(
+    elem: Dict[str, Union[str, Union[Dict[str, List[Union[int, str, bool]]]]]],
+    data: pd.DataFrame,
+) -> Dict[str, Union[int, float]]:
     """Generate dict with statistics for categorical variables
 
     Input:
@@ -82,7 +69,10 @@ def get_categorical_statistics(elem: dict, data: pd.DataFrame) -> dict:
     return {"valid": valid, "invalid": invalid}
 
 
-def get_nominal_statistics(elem: dict, data: pd.DataFrame) -> dict:
+def get_nominal_statistics(
+    elem: Dict[str, Union[str, Union[Dict[str, List[Union[int, str, bool]]]]]],
+    data: pd.DataFrame,
+) -> Dict[str, Union[int, float]]:
     """Generate dict with statistics for nominal variables
 
     Input:
@@ -92,6 +82,7 @@ def get_nominal_statistics(elem: dict, data: pd.DataFrame) -> dict:
     Output:
     dict
     """
+
     frequencies = Counter(data[elem["name"]])
     string_missings = frequencies[""] + frequencies["."]
     valid = data[elem["name"]].value_counts().sum() - string_missings
@@ -100,7 +91,10 @@ def get_nominal_statistics(elem: dict, data: pd.DataFrame) -> dict:
     return {"valid": int(valid), "invalid": int(invalid)}
 
 
-def get_numerical_statistics(elem: dict, data: pd.DataFrame) -> dict:
+def get_numerical_statistics(
+    elem: Dict[str, Union[str, Union[Dict[str, List[Union[int, str, bool]]]]]],
+    data: pd.DataFrame,
+) -> Dict[str, Union[float, int]]:
     """Generate dict with statistics for numerical variables
 
     Input:
@@ -132,7 +126,10 @@ def get_numerical_statistics(elem: dict, data: pd.DataFrame) -> dict:
     }
 
 
-def get_univariate_statistics(elem: dict, data: pd.DataFrame) -> dict:
+def get_univariate_statistics(
+    elem: Dict[str, Union[str, Union[Dict[str, List[Union[int, str, bool]]]]]],
+    data: pd.DataFrame,
+) -> Dict[str, Union[int, float]]:
     """Call function to generate statistics depending on the variable type
 
     Input:
@@ -161,7 +158,9 @@ def get_univariate_statistics(elem: dict, data: pd.DataFrame) -> dict:
     return statistics
 
 
-def value_count_and_frequencies(elem: dict, data: pd.DataFrame) -> OrderedDict:
+def get_value_counts_and_frequencies(
+    elem: Dict[str, Dict[str, List[Union[int, str, bool]]]], data: pd.DataFrame
+) -> Dict[str, List[int]]:
     """Call function to generate frequencies depending on the variable type
 
     Input:
@@ -172,28 +171,25 @@ def value_count_and_frequencies(elem: dict, data: pd.DataFrame) -> OrderedDict:
     statistics: OrderedDict
     """
 
-    statistics = OrderedDict()
+    statistics: Dict[str, List[int]] = OrderedDict()
     _scale = elem["scale"]
-    scale_functions = {
-        "string": get_nominal_frequencies,
-        "number": get_numerical_frequencies,
-    }
 
     if _scale == "cat":
         statistics.update(get_categorical_frequencies(elem, data))
-    # We change this to else, if no other types exist
-    elif _scale in scale_functions:
-        statistics.update(scale_functions[_scale]())
 
     return statistics
 
 
-def generate_statistics(data: pd.DataFrame, metadata: dict, study: str) -> list:
+def generate_statistics(
+    data: pd.DataFrame,
+    metadata: List[Dict[str, Union[str, Dict[str, List[Union[int, str, bool]]]]]],
+    study: str,
+) -> List[Dict[str, Union[str, Dict[str, List[Union[int, float, str, bool]]]]]]:
     """Prepare statistics for every variable
 
     Input:
-    data: pandas DataFrame (later called data)
-    metadata: dict (later called file_json)
+    data: pandas DataFrame
+    metadata: dict
     study: string
 
     Output:
@@ -205,12 +201,17 @@ def generate_statistics(data: pd.DataFrame, metadata: dict, study: str) -> list:
         metadata[i]["study"] = study
         metadata[i].update({"statistics": get_univariate_statistics(elem, data)})
         if elem["scale"] == "cat":
-            metadata[i]["categories"].update(value_count_and_frequencies(elem, data))
+            metadata[i]["categories"].update(get_value_counts_and_frequencies(elem, data))
 
     return metadata
 
 
-def write_json(data: pd.DataFrame, metadata: dict, filename: str, study: str):
+def write_json(
+    data: pd.DataFrame,
+    metadata: List[Dict[str, Union[str, Dict[str, List[Union[int, str, bool]]]]]],
+    filename: pathlib.Path,
+    study: str,
+) -> None:
     """Main function to write json.
 
     metadata_test = [
