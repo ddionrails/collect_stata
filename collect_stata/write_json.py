@@ -5,7 +5,7 @@ import json
 import logging
 import pathlib
 from collections import Counter, OrderedDict
-from typing import Dict, List, Union
+from typing import Any, Dict, List, Union
 
 import pandas as pd
 
@@ -127,8 +127,7 @@ def get_numerical_statistics(
 
 
 def get_univariate_statistics(
-    elem: Dict[str, Union[str, Union[Dict[str, List[Union[int, str, bool]]]]]],
-    data: pd.DataFrame,
+    elem: Dict[str, Union[str, Union[Dict[str, Any]]]], data: pd.DataFrame
 ) -> Dict[str, Union[int, float]]:
     """Call function to generate statistics depending on the variable type
 
@@ -181,9 +180,7 @@ def get_value_counts_and_frequencies(
 
 
 def generate_statistics(
-    data: pd.DataFrame,
-    metadata: List[Dict[str, Union[str, Dict[str, List[Union[int, str, bool]]]]]],
-    study: str,
+    data: pd.DataFrame, metadata: List[Dict[str, Any]], study: str
 ) -> List[Dict[str, Union[str, Dict[str, List[Union[int, float, str, bool]]]]]]:
     """Prepare statistics for every variable
 
@@ -196,12 +193,12 @@ def generate_statistics(
     stat: OrderedDict
     """
 
-    for i, elem in enumerate(metadata):
-        logging.info("%s/%s", str(i + 1), str(len(metadata)))
-        metadata[i]["study"] = study
-        metadata[i].update({"statistics": get_univariate_statistics(elem, data)})
+    for elem in metadata:
+        logging.info("%s", str(len(metadata)))
+        elem["study"] = study
+        elem.update({"statistics": get_univariate_statistics(elem, data)})
         if elem["scale"] == "cat":
-            metadata[i]["categories"].update(get_value_counts_and_frequencies(elem, data))
+            elem["categories"].update(get_value_counts_and_frequencies(elem, data))
 
     return metadata
 
