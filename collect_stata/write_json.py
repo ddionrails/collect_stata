@@ -3,136 +3,113 @@ __author__ = "Marius Pahl"
 
 import json
 import logging
+import pathlib
 from collections import Counter, OrderedDict
+from typing import Any, Dict, List, Union
 
 import pandas as pd
 
 
-def sorting_dataframe(values, labels, missings, frequencies):
-    """Function to sort values and labels and return sorted dict"""
-    dataframe = pd.DataFrame(
-        {
-            "values": values,
-            "labels": labels,
-            "missings": missings,
-            "frequencies": frequencies,
-        }
-    )
-    dataframe["labels"] = dataframe["labels"].astype(str)
-    dataframe["values"] = pd.to_numeric(dataframe["values"])
-    dataframe.sort_values(by="values", inplace=True)
-    return dataframe.to_dict("list")
-
-
-def uni_cat(elem, file_csv):
+def get_categorical_frequencies(
+    elem: Dict[str, Dict[str, List[Union[int, str, bool]]]], data: pd.DataFrame
+) -> Dict[str, List[int]]:
     """Generate dict with frequencies and labels for categorical variables
 
     Input:
     elem: dict
-    file_csv: pandas DataFrame
+    data: pandas DataFrame
 
     Output:
     cat_dict: dict
     """
 
     frequencies = []
-    values = []
-    missings = []
-    labels = []
 
-    value_count = file_csv[elem["name"]].value_counts()
-    for value in elem["values"]:
+    value_count = data[elem["name"]].value_counts()
+
+    # If values are not labeled in categorical variables, values become value and label
+    for value in value_count.index:
+        if value not in elem["categories"]["values"]:
+            elem["categories"]["values"].append(int(value))
+            elem["categories"]["labels"].append(str(int(value)))
+            if value < 0:
+                elem["categories"]["missings"].append(True)
+            else:
+                elem["categories"]["missings"].append(False)
+
+    for value in elem["categories"]["values"]:
         try:
-            frequencies.append(int(value_count[value["value"]]))
+            frequencies.append(int(value_count[value]))
         except KeyError:
             frequencies.append(0)
-        labels.append(value["label"])
 
-        var_value = value["value"]
-
-        if value["value"] >= 0:
-            missings.append(False)
-        else:
-            missings.append(True)
-        values.append(var_value)
-
-    return sorting_dataframe(values, labels, missings, frequencies)
+    return {"frequencies": frequencies}
 
 
-def uni_string():
-    """Generate dict with frequencies for nominal variables
-
-    Output:
-    OrderedDict
-    """
-
-    return OrderedDict(frequencies=[], labels=[], labels_de=[], missings=[], values=[])
-
-
-def uni_number():
-    """Generate dict with frequencies for numerical variables
-
-    Output:
-    OrderedDict
-    """
-
-    return OrderedDict(frequencies=[], labels=[], labels_de=[], missings=[], values=[])
-
-
-def stats_cat(elem, file_csv):
+def get_categorical_statistics(
+    elem: Dict[str, Union[str, Union[Dict[str, List[Union[int, str, bool]]]]]],
+    data: pd.DataFrame,
+) -> Dict[str, Union[int, float]]:
     """Generate dict with statistics for categorical variables
 
     Input:
     elem: dict
-    file_csv: pandas DataFrame
+    data: pandas DataFrame
 
     Output:
     dict
     """
 
-    total = file_csv[elem["name"]].size
-    invalid = int(file_csv[elem["name"]].isnull().sum()) + int(
-        sum(n < 0 for n in file_csv[elem["name"]])
+    total = data[elem["name"]].size
+    invalid = int(data[elem["name"]].isnull().sum()) + int(
+        sum(n < 0 for n in data[elem["name"]])
     )
     valid = total - invalid
 
     return {"valid": valid, "invalid": invalid}
 
 
-def stats_string(elem, file_csv):
+def get_nominal_statistics(
+    elem: Dict[str, Union[str, Union[Dict[str, List[Union[int, str, bool]]]]]],
+    data: pd.DataFrame,
+) -> Dict[str, Union[int, float]]:
     """Generate dict with statistics for nominal variables
 
     Input:
     elem: dict
-    file_csv: pandas DataFrame
+    data: pandas DataFrame
 
     Output:
     dict
     """
-    frequencies = Counter(file_csv[elem["name"]])
+
+    frequencies = Counter(data[elem["name"]])
     string_missings = frequencies[""] + frequencies["."]
-    valid = file_csv[elem["name"]].value_counts().sum() - string_missings
-    invalid = file_csv[elem["name"]].isnull().sum() + string_missings
+    valid = data[elem["name"]].value_counts().sum() - string_missings
+    invalid = data[elem["name"]].isnull().sum() + string_missings
 
     return {"valid": int(valid), "invalid": int(invalid)}
 
 
-def stats_number(elem, file_csv):
+def get_numerical_statistics(
+    elem: Dict[str, Union[str, Union[Dict[str, List[Union[int, str, bool]]]]]],
+    data: pd.DataFrame,
+) -> Dict[str, Union[float, int]]:
     """Generate dict with statistics for numerical variables
 
     Input:
     elem: dict
-    file_csv: pandas DataFrame
+    data: pandas DataFrame
 
     Output:
     statistics: OrderedDict
     """
 
-    data_withoutmissings = file_csv[file_csv[elem["name"]] >= 0][elem["name"]]
+    data_withoutmissings = data[data[elem["name"]] >= 0][elem["name"]]
 
-    total = file_csv[elem["name"]].size
-    invalid = int(file_csv[elem["name"]].isnull().sum()) + int(
-        sum(n < 0 for n in file_csv[elem["name"]])
+    total = data[elem["name"]].size
+    invalid = int(data[elem["name"]].isnull().sum()) + int(
+        sum(n < 0 for n in data[elem["name"]])
     )
     valid = total - invalid
 
@@ -149,28 +126,30 @@ def stats_number(elem, file_csv):
     }
 
 
-def uni_statistics(elem, file_csv):
+def get_univariate_statistics(
+    elem: Dict[str, Union[str, Union[Dict[str, Any]]]], data: pd.DataFrame
+) -> Dict[str, Union[int, float]]:
     """Call function to generate statistics depending on the variable type
 
     Input:
     elem: dict
-    file_csv: pandas DataFrame
+    data: pandas DataFrame
 
     Output:
     statistics: OrderedDict
     """
 
-    if elem["type"] == "cat":
+    if elem["scale"] == "cat":
 
-        statistics = stats_cat(elem, file_csv)
+        statistics = get_categorical_statistics(elem, data)
 
-    elif elem["type"] == "string":
+    elif elem["scale"] == "string":
 
-        statistics = stats_string(elem, file_csv)
+        statistics = get_nominal_statistics(elem, data)
 
-    elif elem["type"] == "number":
+    elif elem["scale"] == "number":
 
-        statistics = stats_number(elem, file_csv)
+        statistics = get_numerical_statistics(elem, data)
 
     else:
         statistics = dict()
@@ -178,102 +157,94 @@ def uni_statistics(elem, file_csv):
     return statistics
 
 
-def uni(elem, file_csv):
+def get_value_counts_and_frequencies(
+    elem: Dict[str, Dict[str, List[Union[int, str, bool]]]], data: pd.DataFrame
+) -> Dict[str, List[int]]:
     """Call function to generate frequencies depending on the variable type
 
     Input:
     elem: dict
-    file_csv: pandas DataFrame
+    data: pandas DataFrame
 
     Output:
     statistics: OrderedDict
     """
 
-    statistics = OrderedDict()
-    _type = elem["type"]
-    type_functions = {"string": uni_string, "number": uni_number}
+    statistics: Dict[str, List[int]] = OrderedDict()
+    _scale = elem["scale"]
 
-    if _type == "cat":
-        statistics.update(uni_cat(elem, file_csv))
-    # We change this to else, if no other types exist
-    elif _type in type_functions:
-        statistics.update(type_functions[_type]())
+    if _scale == "cat":
+        statistics.update(get_categorical_frequencies(elem, data))
 
     return statistics
 
 
-def stat_dict(elem, file_csv, file_json, study):
-    """Fill variables with metadata of the dataset.
-
-    Input:
-    elem: dict
-    file_csv: pandas DataFrame
-    file_json: dict
-    study: string
-
-    Output:
-    meta_dict: OrderedDict
-    """
-
-    scale = elem["type"][0:3]
-
-    meta_dict = OrderedDict()
-
-    meta_dict["study"] = study
-    meta_dict["dataset"] = file_json["name"]
-    meta_dict["name"] = elem["name"]
-    meta_dict["label"] = elem["label"]
-    meta_dict["scale"] = scale
-    meta_dict["categories"] = uni(elem, file_csv)
-
-    # For 10 or less values the statistics aren't shown.
-
-    if elem["type"] in ("number", "cat"):
-        data_withoutmissings = file_csv[file_csv[elem["name"]] >= 0][elem["name"]]
-        if sum(Counter(data_withoutmissings.values).values()) > 10:
-            meta_dict["statistics"] = uni_statistics(elem, file_csv)
-    else:
-        meta_dict["statistics"] = uni_statistics(elem, file_csv)
-
-    return meta_dict
-
-
-def generate_stat(data, metadata, study):
+def generate_statistics(
+    data: pd.DataFrame, metadata: List[Dict[str, Any]], study: str
+) -> List[Dict[str, Union[str, Dict[str, List[Union[int, float, str, bool]]]]]]:
     """Prepare statistics for every variable
 
     Input:
-    data: pandas DataFrame (later called file_csv)
-    metadata: dict (later called file_json)
+    data: pandas DataFrame
+    metadata: dict
     study: string
 
     Output:
     stat: OrderedDict
     """
 
-    stat = list()
-    elements = list()
-    for elem in metadata["resources"][0]["schema"]["fields"]:
-        elements.append(elem)
-    elements_length = len(elements)
+    for elem in metadata:
+        logging.info("%s", str(len(metadata)))
+        elem["study"] = study
+        elem.update({"statistics": get_univariate_statistics(elem, data)})
+        if elem["scale"] == "cat":
+            elem["categories"].update(get_value_counts_and_frequencies(elem, data))
 
-    for i, elem in enumerate(elements):
-        logging.info("%s/%s", str(i + 1), str(elements_length))
-        stat.append(stat_dict(elem, data, metadata, study))
-
-    return stat
+    return metadata
 
 
-def write_json(data, metadata, filename, study=""):
+def write_json(
+    data: pd.DataFrame,
+    metadata: List[Dict[str, Union[str, Dict[str, List[Union[int, str, bool]]]]]],
+    filename: pathlib.Path,
+    study: str,
+) -> None:
     """Main function to write json.
 
-    Input:
-    data: pandas DataFrame (later called file_csv)
-    metadata: dict (later called file_json)
-    filename: string
-    study: string
+    metadata_test = [
+        {
+            "name": "HKIND",
+            "label": "test for categorical var",
+            "type": "category",
+            "scale": "cat",
+            "categories": {
+                "values": [-1, 1, 2],
+                "labels": ["missing", "yes", "no"],
+                "missings": [True, False, False],
+            },
+        },
+        {
+            "name": "HM04",
+            "label": "test for numerical var",
+            "type": "int",
+            "scale": "number",
+        },
+        {
+            "name": "HKGEBA",
+            "label": "test for string var",
+            "type": "str",
+            "scale": "string",
+        }
+    ]
+
+    Args:
+        data: Datatable of imported data.
+        metadata: Metadata of the imported data.
+        filename: Name of the output json file.
+        study: Name of the study.
     """
 
-    stat = generate_stat(data, metadata, study)
+    stat = generate_statistics(data, metadata, study)
 
     logging.info('write "%s"', filename)
     with open(filename, "w") as json_file:
