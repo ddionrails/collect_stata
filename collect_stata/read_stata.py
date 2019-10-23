@@ -1,143 +1,119 @@
-"""read_stata.py"""
+"""Process stata dta files with pandas StataReader."""
 __author__ = "Marius Pahl"
 
-import logging
 import pathlib
-import re
+import warnings
+from typing import Dict, List, Union
 
-import pandas as pd
-
-LOGGER = logging.getLogger(__name__)
-
-
-def cat_values(varscale, data):
-    """
-    Extract categorical metadata from stata files
-
-    Input:
-    varscale: dict
-    data: pandas StataReader
-
-    Output:
-    cat_list: list
-    """
-
-    cat_list = list()
-
-    label_dict = data.value_labels()
-
-    for label in data.lbllist:
-        if label == varscale["name"]:
-            value_labels = label_dict[label]
-
-    for value, label in value_labels.items():
-        cat_list.append(dict(value=int(value), label=label))
-
-    return cat_list
+import pandas
+import pandas.io.stata
+from pandas.api.types import is_numeric_dtype
 
 
-def scale_var(var, varscale, datatable):
-    """
-    Select vartype
+class StataDataExtractor:
+    """Extract metadata and data from a stata file
 
-    Input:
-    var: string
-    varscale: dict
-    datatable: pandas DataFrame
+    Args:
+        file_name: The location of the stata file to be processed.
 
-    Output:
-    var_type: string
+    Attributes:
+        file_name: The location of the stata file to be processed.
+        reader: The reader object created withe the stata file.
+                Metadata is obtained from this object. Actual data is
+                read from it into a pandas.DataFrame.
+        data: The actual data parsed from the stata file. Is initiated empty.
+                To parse the data, the method parse_file() has to be called.
+        metadata: The metadata obtained from the reader. Is initiated empty.
+                    To parse the data, the method parse_file() has to be called.
     """
 
-    if varscale["name"] != "":
-        return "cat"
-    var_type = str(datatable[var].dtype)
-    match_float = re.search(r"float\d*", var_type)
-    match_int = re.search(r"int\d*", var_type)
-    if match_float or match_int:
-        var_type = "number"
-    if var_type == "object":
-        var_type = "string"
-    return var_type
+    file_name: pathlib.Path
+    reader: pandas.io.stata.StataReader
+    data: pandas.DataFrame
+    metadata: List[Dict[str, Union[str, Dict[str, List[Union[int, str, bool]]]]]]
 
+    def __init__(self, file_name: pathlib.Path):
+        self.file_name = file_name
+        self.reader = pandas.read_stata(
+            file_name, iterator=True, convert_categoricals=False
+        )
+        self.data = pandas.DataFrame()
+        self.metadata = list()
 
-def generate_tdp(datatable, stata_name, data):
-    """
-    Generate tabular data package file
+    def parse_file(self) -> None:
+        """Initiate reading of the data and metadata."""
+        self.data = self.reader.read()
+        self.metadata = self.get_variable_metadata()
 
-    Input:
-    datatable: pandas DataFrame
-    stata_name: string
-    data: pandas StataReader
+    def get_variable_metadata(
+        self
+    ) -> List[Dict[str, Union[str, Dict[str, List[Union[int, str, bool]]]]]]:
+        """Gather metadata about variables in the data.
 
-    Output:
-    tdp: dict
-    """
+        Stores computed metadata in the attribute metadata.
+        If metadata was already filled by a previous run, the metadata will not
+        be collected again. Instead it will return metadata.
 
-    variables = data.varlist
+        Returns:
+            A list with a dictionary for every variable.
+            For a detailed description of the dictionary see the test documentation
+            for this at collect_stata.tests.test_read_stata
+        """
 
-    varlabels = data.variable_labels()
+        if self.metadata:
+            return self.metadata
 
-    varscales = [
-        dict(name=varscale, sn=number) for number, varscale in enumerate(data.lbllist)
-    ]
+        dataset = pathlib.Path(self.file_name).stem
 
-    dataset_name = pathlib.Path(stata_name).stem
+        variable_labels = self.reader.variable_labels()
+        value_labels = self.reader.value_labels()
+        for variable in self.reader.varlist:
+            variable_meta = dict()
+            variable_meta["name"] = variable
+            variable_meta["dataset"] = dataset
+            variable_meta["label"] = variable_labels.get(variable, None)
+            variable_meta["categories"] = {"values": [], "labels": []}
+            for value, label in value_labels.get(variable, dict()).items():
+                # At the moment if a variable has value labels attached, it is
+                # interpretet as being on a categorical scale.
+                variable_meta["scale"] = "cat"
 
-    tdp = {}
-    fields = []
+                variable_meta["categories"]["values"].append(value)
+                variable_meta["categories"]["labels"].append(label)
 
-    for var, varscale in zip(variables, varscales):
-        scale = scale_var(var, varscale, datatable)
-        meta = dict(name=var, label=varlabels[var], type=scale)
-        if scale == "cat":
-            meta["values"] = cat_values(varscale, data)
+            if "scale" not in variable_meta:
+                variable_meta["scale"] = self.get_variable_scale(
+                    self.reader.varlist.index(variable)
+                )
+            self.metadata.append(variable_meta)
 
-        fields.append(meta)
+        return self.metadata
 
-    schema = dict(fields=fields)
+    def get_variable_scale(self, variable_index: int) -> str:
+        """Guess a variables scale.
 
-    resources = [dict(path=stata_name, schema=schema)]
+        At this point it is unclear what could be used to identify the
+        scale of a variable.
+        The implementation here follows the old method to identify scales that
+        are not categorical ("cat"), with the exception, that the datatype is
+        identified by using the pandas.io.stata.StataReader generator instead of
+        reading the whole data into a pandas DataFrame first.
 
-    tdp.update(dict(name=dataset_name, resources=resources))
+        Args:
+            variable_index: Index of a variable from the list returned by
+            StataReader.variable_labels(). This index is used to retrieve the
+            datatype from the same index position in the StataReader.dtypelist.
 
-    return tdp
-
-
-def parse_dataset(data, stata_name):
-    """
-    Create data and metadata
-
-    Input:
-    data: pandas StataReader
-    stata_name: string
-
-    Output:
-    datatable: pandas DataFrame
-    metadata: dict
-    """
-
-    datatable = data.read()
-
-    metadata = generate_tdp(datatable, stata_name, data)
-
-    return datatable, metadata
-
-
-def read_stata(stata_name):
-    """
-    Read stata files (dta)
-
-    Input:
-    stata_name: string
-
-    Output:
-    datatable: pandas DataFrame
-    metadata: dict
-    """
-
-    logging.info('read "%s"', stata_name)
-    data = pd.read_stata(stata_name, iterator=True, convert_categoricals=False)
-    datatable, metadata = parse_dataset(data, stata_name)
-
-    return datatable, metadata
+        Returns:
+            str: [description]
+        """
+        warnings.warn(
+            "This method uses a questionable way of determining a variables scale.",
+            DeprecationWarning,
+        )
+        variable_dtype = self.reader.dtyplist[variable_index]
+        if is_numeric_dtype(variable_dtype):
+            return "number"
+        if variable_dtype == "object":
+            return "string"
+        return str(variable_dtype)

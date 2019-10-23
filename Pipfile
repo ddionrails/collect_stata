@@ -11,6 +11,8 @@ pylint = "*"
 pyroma = "*"
 pytest = "*"
 pytest-cov = "*"
+deepdiff = "*"
+mypy = "*"
 
 [requires]
 python_version = "3.6"
