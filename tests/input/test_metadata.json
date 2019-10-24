@@ -1,1 +1,25 @@
-{"name": "teststudy", "resources": [{"path": "testpath", "schema": {"fields": [{"values": [{"value": -1, "label": "missing"}, {"value": 1, "label": "a"}, {"value": 2, "label": "b"}], "type": "cat", "label": "label for testcat", "name": "TESTCAT"}, {"type": "string", "label": "label for teststring", "name": "TESTSTRING"}, {"type": "number", "label": "label for testnumber", "name": "TESTNUMBER"}, {"type": "", "label": "label for other test type", "name": "TESTOTHER"}]}}]}
+[
+    {
+        "name": "TESTCAT",
+        "label": "test for categorical variable",
+        "type": "category",
+        "scale": "cat",
+        "categories": {
+            "values": [-1, 1, 2],
+            "labels": ["missing", "a", "b"],
+            "missings": [true, false, false]
+            }
+    },
+    {
+        "name": "TESTSTRING",
+        "label": "test for nominal variable",
+        "type": "str",
+        "scale": "string"
+    },
+    {
+        "name": "TESTNUMBER",
+        "label": "test for numerical variable",
+        "type": "int",
+        "scale": "number"
+    }
+]

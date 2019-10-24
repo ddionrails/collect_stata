@@ -10,14 +10,13 @@ from collections import OrderedDict
 import pandas as pd
 
 from collect_stata.write_json import (
-    generate_stat,
-    stat_dict,
-    stats_cat,
-    stats_number,
-    stats_string,
-    uni,
-    uni_cat,
-    uni_statistics,
+    generate_statistics,
+    get_categorical_frequencies,
+    get_categorical_statistics,
+    get_nominal_statistics,
+    get_numerical_statistics,
+    get_univariate_statistics,
+    get_value_counts_and_frequencies,
     write_json,
 )
 
@@ -60,90 +59,55 @@ class TestWriteJson(unittest.TestCase):
         """
         Create a test study
         """
-        study = dict()
 
-        study["study"] = "teststudy"
+        return "teststudy"
 
-        return study
-
-    def test_uni_cat(self):
+    def test_get_categorical_frequencies(self):
         """
-        Test for uni_cat
+        Test for get_categorical_frequencies
         """
         metadata = self.get_testmetadata()
-        element = next(
-            (
-                var
-                for var in metadata["resources"][0]["schema"]["fields"]
-                if var["name"] == "TESTCAT"
-            ),
-            None,
-        )
-        file_csv = self.get_testdatatable()
 
-        cat_dict = uni_cat(element, file_csv)
+        element = next((var for var in metadata if var["name"] == "TESTCAT"), None)
+        data = self.get_testdatatable()
 
-        assert cat_dict == {
-            "frequencies": [2, 6, 6],
-            "values": [-1, 1, 2],
-            "missings": [True, False, False],
-            "labels": ["missing", "a", "b"],
-        }
+        cat_dict = get_categorical_frequencies(element, data)
 
-    def test_stats_cat(self):
+        assert cat_dict == {"frequencies": [2, 6, 6]}
+
+    def test_get_categorical_statistics(self):
         """
-        Test for stats_cat
+        Test for get_categorical_statistics
         """
         metadata = self.get_testmetadata()
-        element = next(
-            (
-                var
-                for var in metadata["resources"][0]["schema"]["fields"]
-                if var["name"] == "TESTCAT"
-            ),
-            None,
-        )
-        file_csv = self.get_testdatatable()
+        element = next((var for var in metadata if var["name"] == "TESTCAT"), None)
+        data = self.get_testdatatable()
 
-        statistics = stats_cat(element, file_csv)
+        statistics = get_categorical_statistics(element, data)
 
         assert statistics == {"valid": 12, "invalid": 3}
 
-    def test_stats_string(self):
+    def test_get_nominal_statistics(self):
         """
-        Test for stats_string
+        Test for get_nominal_statistics
         """
         metadata = self.get_testmetadata()
-        element = next(
-            (
-                var
-                for var in metadata["resources"][0]["schema"]["fields"]
-                if var["name"] == "TESTSTRING"
-            ),
-            None,
-        )
-        file_csv = self.get_testdatatable()
+        element = next((var for var in metadata if var["name"] == "TESTSTRING"), None)
+        data = self.get_testdatatable()
 
-        statistics = stats_string(element, file_csv)
+        statistics = get_nominal_statistics(element, data)
 
         assert statistics == {"valid": 9, "invalid": 6}
 
-    def test_stats_number(self):
+    def test_get_numerical_statistics(self):
         """
-        Test for stats_number
+        Test for get_numerical_statistics
         """
         metadata = self.get_testmetadata()
-        element = next(
-            (
-                var
-                for var in metadata["resources"][0]["schema"]["fields"]
-                if var["name"] == "TESTNUMBER"
-            ),
-            None,
-        )
-        file_csv = self.get_testdatatable()
+        element = next((var for var in metadata if var["name"] == "TESTNUMBER"), None)
+        data = self.get_testdatatable()
 
-        statistics = stats_number(element, file_csv)
+        statistics = get_numerical_statistics(element, data)
 
         assert statistics == {
             "Min.": 2.0,
@@ -156,60 +120,39 @@ class TestWriteJson(unittest.TestCase):
             "invalid": 4,
         }
 
-    def test_uni_statistics_cat(self):
+    def test_get_univariate_statistics_cat(self):
         """
-        Test for categorical variables in uni_statistics
+        Test for categorical variables in get_univariate_statistics
         """
         metadata = self.get_testmetadata()
-        element = next(
-            (
-                var
-                for var in metadata["resources"][0]["schema"]["fields"]
-                if var["name"] == "TESTCAT"
-            ),
-            None,
-        )
-        file_csv = self.get_testdatatable()
+        element = next((var for var in metadata if var["name"] == "TESTCAT"), None)
+        data = self.get_testdatatable()
 
-        statistics = uni_statistics(element, file_csv)
+        statistics = get_univariate_statistics(element, data)
 
         assert statistics == {"valid": 12, "invalid": 3}
 
-    def test_uni_statistics_string(self):
+    def test_get_univariate_statistics_string(self):
         """
-        Test for nominal variables in uni_statistics
+        Test for nominal variables in get_univariate_statistics
         """
         metadata = self.get_testmetadata()
-        element = next(
-            (
-                var
-                for var in metadata["resources"][0]["schema"]["fields"]
-                if var["name"] == "TESTSTRING"
-            ),
-            None,
-        )
-        file_csv = self.get_testdatatable()
+        element = next((var for var in metadata if var["name"] == "TESTSTRING"), None)
+        data = self.get_testdatatable()
 
-        statistics = uni_statistics(element, file_csv)
+        statistics = get_univariate_statistics(element, data)
 
         assert statistics == {"valid": 9, "invalid": 6}
 
-    def test_uni_statistics_number(self):
+    def test_get_univariate_statistics_number(self):
         """
-        Test for numerical variables in uni_statistics
+        Test for numerical variables in get_univariate_statistics
         """
         metadata = self.get_testmetadata()
-        element = next(
-            (
-                var
-                for var in metadata["resources"][0]["schema"]["fields"]
-                if var["name"] == "TESTNUMBER"
-            ),
-            None,
-        )
-        file_csv = self.get_testdatatable()
+        element = next((var for var in metadata if var["name"] == "TESTNUMBER"), None)
+        data = self.get_testdatatable()
 
-        statistics = uni_statistics(element, file_csv)
+        statistics = get_univariate_statistics(element, data)
 
         assert statistics == {
             "Min.": 2.0,
@@ -222,294 +165,33 @@ class TestWriteJson(unittest.TestCase):
             "invalid": 4,
         }
 
-    def test_uni_statistics_other(self):
+    def test_get_value_counts_and_frequencies_cat(self):
         """
-        Test for other variables in uni_statistics
-        """
-        metadata = self.get_testmetadata()
-        element = next(
-            (
-                var
-                for var in metadata["resources"][0]["schema"]["fields"]
-                if var["name"] == "TESTOTHER"
-            ),
-            None,
-        )
-        file_csv = self.get_testdatatable()
-
-        statistics = uni_statistics(element, file_csv)
-
-        assert statistics == {"invalid": 1, "valid": 14}
-
-    def test_uni_testcat(self):
-        """
-        Test for categorical variables in uni
+        Test for categorical variables in get_value_counts_and_frequencies
         """
         metadata = self.get_testmetadata()
-        element = next(
-            (
-                var
-                for var in metadata["resources"][0]["schema"]["fields"]
-                if var["name"] == "TESTCAT"
-            ),
-            None,
-        )
-        file_csv = self.get_testdatatable()
+        element = next((var for var in metadata if var["name"] == "TESTCAT"), None)
+        data = self.get_testdatatable()
 
-        cat_dict = uni(element, file_csv)
+        cat_dict = get_value_counts_and_frequencies(element, data)
 
-        assert cat_dict == OrderedDict(
-            [
-                ("values", [-1, 1, 2]),
-                ("labels", ["missing", "a", "b"]),
-                ("missings", [True, False, False]),
-                ("frequencies", [2, 6, 6]),
-            ]
-        )
+        assert cat_dict == OrderedDict([("frequencies", [2, 6, 6])])
 
-    def test_uni_teststring(self):
+    def test_generate_statistics(self):
         """
-        Test for nominal variables in uni
-        """
-        metadata = self.get_testmetadata()
-        element = next(
-            (
-                var
-                for var in metadata["resources"][0]["schema"]["fields"]
-                if var["name"] == "TESTSTRING"
-            ),
-            None,
-        )
-        file_csv = self.get_testdatatable()
-
-        string_dict = uni(element, file_csv)
-
-        assert string_dict == OrderedDict(
-            [
-                ("frequencies", []),
-                ("labels", []),
-                ("labels_de", []),
-                ("missings", []),
-                ("values", []),
-            ]
-        )
-
-    def test_uni_testnumber(self):
-        """
-        Test for numerical variables in uni
-        """
-        metadata = self.get_testmetadata()
-        element = next(
-            (
-                var
-                for var in metadata["resources"][0]["schema"]["fields"]
-                if var["name"] == "TESTNUMBER"
-            ),
-            None,
-        )
-        file_csv = self.get_testdatatable()
-
-        number_dict = uni(element, file_csv)
-
-        assert number_dict == OrderedDict(
-            [
-                ("frequencies", []),
-                ("labels", []),
-                ("labels_de", []),
-                ("missings", []),
-                ("values", []),
-            ]
-        )
-
-    def test_uni_testother(self):
-        """
-        Test for other variables in uni
-        """
-        metadata = self.get_testmetadata()
-        element = next(
-            (
-                var
-                for var in metadata["resources"][0]["schema"]["fields"]
-                if var["name"] == "TESTOTHER"
-            ),
-            None,
-        )
-        file_csv = self.get_testdatatable()
-
-        other_dict = uni(element, file_csv)
-
-        assert other_dict == dict()
-
-    def test_stat_dict(self):
-        """
-        Test for stat_dict
-        """
-        metadata = self.get_testmetadata()
-        element = next(
-            (
-                var
-                for var in metadata["resources"][0]["schema"]["fields"]
-                if var["name"] == "TESTCAT"
-            ),
-            None,
-        )
-        file_csv = self.get_testdatatable()
-
-        study_information = self.get_teststudy()
-        file_json = self.get_testmetadata()
-
-        study = study_information["study"]
-
-        generated_data = stat_dict(element, file_csv, file_json, study)
-
-        assert generated_data == OrderedDict(
-            [
-                ("study", "teststudy"),
-                ("dataset", "teststudy"),
-                ("name", "TESTCAT"),
-                ("label", "label for testcat"),
-                ("scale", "cat"),
-                (
-                    "categories",
-                    OrderedDict(
-                        [
-                            ("values", [-1, 1, 2]),
-                            ("labels", ["missing", "a", "b"]),
-                            ("missings", [True, False, False]),
-                            ("frequencies", [2, 6, 6]),
-                        ]
-                    ),
-                ),
-                ("statistics", {"invalid": 3, "valid": 12}),
-            ]
-        )
-
-    def test_generate_stat(self):
-        """
-        Test for generate_stat
+        Test for generate_statistics
         """
         data = self.get_testdatatable()
-        study_information = self.get_teststudy()
-        file_json = self.get_testmetadata()
+        study = self.get_teststudy()
+        metadata = self.get_testmetadata()
 
-        study = study_information["study"]
-
-        generated_data = generate_stat(data, file_json, study)
+        generated_data = generate_statistics(data, metadata, study)
 
         assert generated_data == [
-            OrderedDict(
-                [
-                    ("study", "teststudy"),
-                    ("dataset", "teststudy"),
-                    ("name", "TESTCAT"),
-                    ("label", "label for testcat"),
-                    ("scale", "cat"),
-                    (
-                        "categories",
-                        OrderedDict(
-                            [
-                                ("values", [-1, 1, 2]),
-                                ("labels", ["missing", "a", "b"]),
-                                ("missings", [True, False, False]),
-                                ("frequencies", [2, 6, 6]),
-                            ]
-                        ),
-                    ),
-                    ("statistics", {"invalid": 3, "valid": 12}),
-                ]
-            ),
-            OrderedDict(
-                [
-                    ("study", "teststudy"),
-                    ("dataset", "teststudy"),
-                    ("name", "TESTSTRING"),
-                    ("label", "label for teststring"),
-                    ("scale", "str"),
-                    (
-                        "categories",
-                        OrderedDict(
-                            [
-                                ("frequencies", []),
-                                ("labels", []),
-                                ("labels_de", []),
-                                ("missings", []),
-                                ("values", []),
-                            ]
-                        ),
-                    ),
-                    ("statistics", {"invalid": 6, "valid": 9}),
-                ]
-            ),
-            OrderedDict(
-                [
-                    ("study", "teststudy"),
-                    ("dataset", "teststudy"),
-                    ("name", "TESTNUMBER"),
-                    ("label", "label for testnumber"),
-                    ("scale", "num"),
-                    (
-                        "categories",
-                        OrderedDict(
-                            [
-                                ("frequencies", []),
-                                ("labels", []),
-                                ("labels_de", []),
-                                ("missings", []),
-                                ("values", []),
-                            ]
-                        ),
-                    ),
-                    (
-                        "statistics",
-                        {
-                            "Min.": 2.0,
-                            "1st Qu.": 4.5,
-                            "Median": 6.0,
-                            "Mean": 15.454545454545455,
-                            "3rd Qu.": 10.0,
-                            "Max.": 100.0,
-                            "valid": 11,
-                            "invalid": 4,
-                        },
-                    ),
-                ]
-            ),
-            OrderedDict(
-                [
-                    ("study", "teststudy"),
-                    ("dataset", "teststudy"),
-                    ("name", "TESTOTHER"),
-                    ("label", "label for other test type"),
-                    ("scale", ""),
-                    ("categories", OrderedDict()),
-                    ("statistics", {"invalid": 1, "valid": 14}),
-                ]
-            ),
-        ]
-
-    def test_write_json(self):
-        """
-        Test for write_json
-        """
-        data = self.get_testdatatable()
-        study_information = self.get_teststudy()
-        metadata = self.get_testmetadata()
-
-        study = study_information["study"]
-
-        filename = self.sandbox.name + "/test.json"
-
-        write_json(data, metadata, filename, study)
-
-        with open(filename) as json_file:
-            output = json.load(json_file)
-
-        assert output == [
             {
-                "study": "teststudy",
-                "dataset": "teststudy",
                 "name": "TESTCAT",
-                "label": "label for testcat",
+                "label": "test for categorical variable",
+                "type": "category",
                 "scale": "cat",
                 "categories": {
                     "values": [-1, 1, 2],
@@ -517,36 +199,23 @@ class TestWriteJson(unittest.TestCase):
                     "missings": [True, False, False],
                     "frequencies": [2, 6, 6],
                 },
+                "study": "teststudy",
                 "statistics": {"valid": 12, "invalid": 3},
             },
             {
-                "study": "teststudy",
-                "dataset": "teststudy",
                 "name": "TESTSTRING",
-                "label": "label for teststring",
-                "scale": "str",
-                "categories": {
-                    "frequencies": [],
-                    "labels": [],
-                    "labels_de": [],
-                    "missings": [],
-                    "values": [],
-                },
+                "label": "test for nominal variable",
+                "type": "str",
+                "scale": "string",
+                "study": "teststudy",
                 "statistics": {"valid": 9, "invalid": 6},
             },
             {
-                "study": "teststudy",
-                "dataset": "teststudy",
                 "name": "TESTNUMBER",
-                "label": "label for testnumber",
-                "scale": "num",
-                "categories": {
-                    "frequencies": [],
-                    "labels": [],
-                    "labels_de": [],
-                    "missings": [],
-                    "values": [],
-                },
+                "label": "test for numerical variable",
+                "type": "int",
+                "scale": "number",
+                "study": "teststudy",
                 "statistics": {
                     "Min.": 2.0,
                     "1st Qu.": 4.5,
@@ -558,14 +227,62 @@ class TestWriteJson(unittest.TestCase):
                     "invalid": 4,
                 },
             },
+        ]
+
+    def test_write_json(self):
+        """
+        Test for write_json
+        """
+        data = self.get_testdatatable()
+        study = self.get_teststudy()
+        metadata = self.get_testmetadata()
+
+        filename = self.sandbox.name + "/test.json"
+
+        write_json(data, metadata, filename, study)
+
+        with open(filename) as json_file:
+            output = json.load(json_file)
+
+        assert output == [
             {
+                "name": "TESTCAT",
+                "label": "test for categorical variable",
+                "type": "category",
+                "scale": "cat",
+                "categories": {
+                    "values": [-1, 1, 2],
+                    "labels": ["missing", "a", "b"],
+                    "missings": [True, False, False],
+                    "frequencies": [2, 6, 6],
+                },
                 "study": "teststudy",
-                "dataset": "teststudy",
-                "name": "TESTOTHER",
-                "label": "label for other test type",
-                "scale": "",
-                "categories": {},
-                "statistics": {"invalid": 1, "valid": 14},
+                "statistics": {"valid": 12, "invalid": 3},
+            },
+            {
+                "name": "TESTSTRING",
+                "label": "test for nominal variable",
+                "type": "str",
+                "scale": "string",
+                "study": "teststudy",
+                "statistics": {"valid": 9, "invalid": 6},
+            },
+            {
+                "name": "TESTNUMBER",
+                "label": "test for numerical variable",
+                "type": "int",
+                "scale": "number",
+                "study": "teststudy",
+                "statistics": {
+                    "Min.": 2.0,
+                    "1st Qu.": 4.5,
+                    "Median": 6.0,
+                    "Mean": 15.454545454545455,
+                    "3rd Qu.": 10.0,
+                    "Max.": 100.0,
+                    "valid": 11,
+                    "invalid": 4,
+                },
             },
         ]
 
