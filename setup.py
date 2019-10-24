@@ -7,11 +7,11 @@ DESCRIPTION = "Accumulates data from stata files and writes to an open format."
 URL = "https://github.com/ddionrails/collect_stata"
 EMAIL = "mpahl@diw.de"
 AUTHOR = "Marius Pahl"
-REQUIRES_PYTHON = ">=3.6.0"
+REQUIRES_PYTHON = ">=3.8.0"
 VERSION = "0.0.1"
 CLASSIFIERS = [
     "Development Status :: 3 - Alpha",
-    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.8",
     "License :: OSI Approved :: BSD License",
 ]
 KEYWORDS = ["stata", "dta", "tdp"]
