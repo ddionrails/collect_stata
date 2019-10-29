@@ -15,7 +15,7 @@ deepdiff = "*"
 mypy = "*"
 
 [requires]
-python_version = "3.6"
+python_version = "3.8"
 
 [packages]
 collect-stata = {editable = true,path = "."}
