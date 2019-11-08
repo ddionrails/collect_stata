@@ -202,10 +202,44 @@ def generate_statistics(
 
     return metadata
 
+def update_metadata(
+    metadata: List[Dict[str, Union[str, Dict[str, List[Union[int, str, bool]]]]]],
+    metadata_de: List[Dict[str, Union[str, Dict[str, List[Union[int, str, bool]]]]]],
+) -> List[Dict[str, Union[str, Dict[str, List[Union[int, str, bool]]]]]]:
+    """Gather information of german and english metadata and create a new metadata variable
+
+    Input:
+    metadata: Metadata of the english imported data.
+    metadata_de: Metadata of the german imported data.
+
+    Output:
+    metadata: Metadata variable with german and english labels if given.
+    """
+
+    if metadata_de is None:
+        for var in metadata:
+            var["label_de"] = ""
+    elif metadata is None:
+        metadata = metadata_de.copy()
+        for var in metadata:
+            var["label_de"] = var.pop("label")
+            var["label"] = ""
+            if var["scale"] == "cat":
+                var["categories"]["labels_de"] = var["categories"].pop("labels")
+                var["categories"]["labels"] = list()
+    else:
+        for var, var_de in zip(metadata, metadata_de):
+            var["label_de"] = var_de["label"]
+            if var["scale"] == "cat":
+                var["categories"]["labels_de"] = var_de["categories"]["labels"]
+
+
+    return metadata
 
 def write_json(
     data: pd.DataFrame,
-    metadata: List[Dict[str, Union[str, Dict[str, List[Union[int, str, bool]]]]]],
+    metadata_en: List[Dict[str, Union[str, Dict[str, List[Union[int, str, bool]]]]]],
+    metadata_de: List[Dict[str, Union[str, Dict[str, List[Union[int, str, bool]]]]]],
     filename: pathlib.Path,
     study: str,
 ) -> None:
@@ -237,12 +271,41 @@ def write_json(
         }
     ]
 
+    metadata_de_test = [
+        {
+            "name": "HKIND",
+            "label": "Test für kategoriale Variablen",
+            "type": "category",
+            "scale": "cat",
+            "categories": {
+                "values": [-1, 1, 2],
+                "labels": ["missing", "ja", "nein"],
+                "missings": [True, False, False],
+            },
+        },
+        {
+            "name": "HM04",
+            "label": "Test für numerische Variablen",
+            "type": "int",
+            "scale": "number",
+        },
+        {
+            "name": "HKGEBA",
+            "label": "Test für nominale Variablen",
+            "type": "str",
+            "scale": "string",
+        }
+    ]
+
     Args:
         data: Datatable of imported data.
-        metadata: Metadata of the imported data.
+        metadata_en: Metadata of the english imported data.
+        metadata_de: Metadata of the german imported data.
         filename: Name of the output json file.
         study: Name of the study.
     """
+
+    metadata = update_metadata(metadata_en, metadata_de)
 
     stat = generate_statistics(data, metadata, study)
 
