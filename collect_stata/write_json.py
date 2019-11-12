@@ -5,7 +5,7 @@ import json
 import logging
 import pathlib
 from collections import Counter, OrderedDict
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
 
@@ -202,24 +202,26 @@ def generate_statistics(
 
     return metadata
 
+
 def update_metadata(
-    metadata: List[Dict[str, Union[str, Dict[str, List[Union[int, str, bool]]]]]],
-    metadata_de: List[Dict[str, Union[str, Dict[str, List[Union[int, str, bool]]]]]],
-) -> List[Dict[str, Union[str, Dict[str, List[Union[int, str, bool]]]]]]:
-    """Gather information of german and english metadata and create a new metadata variable
+    metadata_en: Optional[List[Dict[str, Any]]],
+    metadata_de: Optional[List[Dict[str, Any]]],
+) -> List[Dict[str, Any]]:
+    """Get information of german and english metadata and create a new metadata variable
 
     Input:
-    metadata: Metadata of the english imported data.
+    metadata_en: Metadata of the english imported data.
     metadata_de: Metadata of the german imported data.
 
     Output:
     metadata: Metadata variable with german and english labels if given.
     """
 
-    if metadata_de is None:
+    if metadata_de is None and metadata_en is not None:
+        metadata = metadata_en.copy()
         for var in metadata:
             var["label_de"] = ""
-    elif metadata is None:
+    elif metadata_en is None and metadata_de is not None:
         metadata = metadata_de.copy()
         for var in metadata:
             var["label_de"] = var.pop("label")
@@ -227,19 +229,20 @@ def update_metadata(
             if var["scale"] == "cat":
                 var["categories"]["labels_de"] = var["categories"].pop("labels")
                 var["categories"]["labels"] = list()
-    else:
+    elif metadata_en is not None and metadata_de is not None:
+        metadata = metadata_en.copy()
         for var, var_de in zip(metadata, metadata_de):
             var["label_de"] = var_de["label"]
             if var["scale"] == "cat":
                 var["categories"]["labels_de"] = var_de["categories"]["labels"]
 
-
     return metadata
+
 
 def write_json(
     data: pd.DataFrame,
-    metadata_en: List[Dict[str, Union[str, Dict[str, List[Union[int, str, bool]]]]]],
-    metadata_de: List[Dict[str, Union[str, Dict[str, List[Union[int, str, bool]]]]]],
+    metadata_en: Optional[List[Dict[str, Any]]],
+    metadata_de: Optional[List[Dict[str, Any]]],
     filename: pathlib.Path,
     study: str,
 ) -> None:
