@@ -157,38 +157,28 @@ def _run(
     study_name: str,
 ) -> None:
     """Encapsulate data processing run with multiprocessing."""
-    if file is None and file_de is not None:
+    if file is None:
         file_path = output_path.joinpath(file_de.stem).with_suffix(".json")
         stata_data_de = StataDataExtractor(file_de)
         stata_data_de.parse_file()
+        data = stata_data_de.data
+        metadata_english = None
+        metadata_german = stata_data_de.metadata
 
-        write_json(
-            stata_data_de.data, None, stata_data_de.metadata, file_path, study=study_name,
-        )
-
-    elif file_de is None and file is not None:
+    if file is not None:
         file_path = output_path.joinpath(file.stem).with_suffix(".json")
         stata_data = StataDataExtractor(file)
         stata_data.parse_file()
+        data = stata_data.data
+        metadata_english = stata_data.metadata
+        metadata_german = None
+        if file_de is not None:
+            stata_data_de = StataDataExtractor(file_de)
+            metadata_german = stata_data_de.get_variable_metadata()
 
-        write_json(
-            stata_data.data, stata_data.metadata, None, file_path, study=study_name
-        )
-
-    elif file is not None and file_de is not None:
-        file_path = output_path.joinpath(file.stem).with_suffix(".json")
-        stata_data = StataDataExtractor(file)
-        stata_data.parse_file()
-        stata_data_de = StataDataExtractor(file_de)
-        stata_data_de.get_variable_metadata()
-
-        write_json(
-            stata_data.data,
-            stata_data.metadata,
-            stata_data_de.metadata,
-            file_path,
-            study=study_name,
-        )
+    write_json(
+        data, metadata_english, metadata_german, file_path, study=study_name,
+    )
 
 
 if __name__ == "__main__":
