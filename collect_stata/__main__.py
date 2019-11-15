@@ -3,10 +3,10 @@ __author__ = "Marius Pahl"
 
 import argparse
 import logging
-import pathlib
 import sys
 import time
 from multiprocessing import Process
+from pathlib import Path
 
 from collect_stata.read_stata import StataDataExtractor
 from collect_stata.write_json import write_json
@@ -39,8 +39,8 @@ def main() -> None:
 
     args = parser.parse_args()
     study = args.study
-    input_path = pathlib.Path(args.input)
-    output_path = pathlib.Path(args.output)
+    input_path = Path(args.input)
+    output_path = Path(args.output)
     run_parallel = args.multiprocessing
 
     if args.verbose:
@@ -57,10 +57,7 @@ def main() -> None:
 
 
 def stata_to_json(
-    study_name: str,
-    input_path: pathlib.Path,
-    output_path: pathlib.Path,
-    run_parallel: bool = True,
+    study_name: str, input_path: Path, output_path: Path, run_parallel: bool = True
 ) -> None:
     """Discover files to work on and handle top level data flow.
 
@@ -95,7 +92,7 @@ def stata_to_json(
     logging.info("Duration {:.5f} seconds".format(duration))
 
 
-def _run(file: pathlib.Path, output_path: pathlib.Path, study_name: str) -> None:
+def _run(file: Path, output_path: Path, study_name: str) -> None:
     """Encapsulate data processing run with multiprocessing."""
     file_path = output_path.joinpath(file.stem).with_suffix(".json")
 
