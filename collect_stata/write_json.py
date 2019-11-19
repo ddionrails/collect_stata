@@ -1,4 +1,4 @@
-"""write_json.py"""
+"""Write calculations and metadata out as a json file."""
 __author__ = "Marius Pahl"
 
 import json
@@ -13,14 +13,14 @@ from collect_stata.types import Categories, Numeric, Variable
 
 
 def get_categorical_frequencies(elem: Variable, data: pd.DataFrame) -> Categories:
-    """Generate dict with frequencies and labels for categorical variables
+    """Generate dict with frequencies and labels for categorical variables.
 
-    Input:
-    elem: dict
-    data: pandas DataFrame
+    Args:
+        elem: Name, label, type and values of categorical variables.
+        data: Datatable of imported data.
 
-    Output:
-    cat_dict: dict
+    Returns:
+        Values, labels, missings and frequencies of the categorical variable.
     """
 
     frequencies: List[Numeric] = []
@@ -49,14 +49,14 @@ def get_categorical_frequencies(elem: Variable, data: pd.DataFrame) -> Categorie
 def get_categorical_statistics(
     elem: Variable, data: pd.DataFrame
 ) -> Dict[str, Union[int, float]]:
-    """Generate dict with statistics for categorical variables
+    """Generate dict with valid and invalid values for categorical variables.
 
-    Input:
-    elem: dict
-    data: pandas DataFrame
+    Args:
+        elem: Name, label, type and values of categorical variables.
+        data: Name, label, type and values of categorical variables.
 
-    Output:
-    dict
+    Returns:
+        Number of valid and invalid values.
     """
 
     total = data[elem["name"]].size
@@ -69,14 +69,14 @@ def get_categorical_statistics(
 
 
 def get_nominal_statistics(elem: Variable, data: pd.DataFrame) -> Dict[str, Numeric]:
-    """Generate dict with statistics for nominal variables
+    """Generate dict with statistics for nominal variables.
 
-    Input:
-    elem: dict
-    data: pandas DataFrame
+    Args:
+        elem: Name, label and type of nominal variables.
+        data: DataFrame of imported data.
 
-    Output:
-    dict
+    Returns:
+        Number of valid and invalid values.
     """
 
     frequencies = Counter(data[elem["name"]])
@@ -90,14 +90,14 @@ def get_nominal_statistics(elem: Variable, data: pd.DataFrame) -> Dict[str, Nume
 def get_numerical_statistics(
     elem: Variable, data: pd.DataFrame
 ) -> Dict[str, Union[float, int]]:
-    """Generate dict with statistics for numerical variables
+    """Generate dict with statistics for numerical variables.
 
-    Input:
-    elem: dict
-    data: pandas DataFrame
+    Args:
+        elem: Name, label and type of numerical variables.
+        data: Datatable of imported data.
 
-    Output:
-    statistics: OrderedDict
+    Returns:
+       Calculations for numerical variables.
     """
 
     data_withoutmissings = data[data[elem["name"]] >= 0][elem["name"]]
@@ -124,14 +124,14 @@ def get_numerical_statistics(
 def get_univariate_statistics(
     elem: Variable, data: pd.DataFrame
 ) -> Dict[str, Union[int, float]]:
-    """Call function to generate statistics depending on the variable type
+    """Call function to generate statistics depending on the variable type.
 
-    Input:
-    elem: dict
-    data: pandas DataFrame
+    Args:
+        elem: Contains information of one variable.
+        data: DataFrame of imported data.
 
-    Output:
-    statistics: OrderedDict
+    Returns:
+        Statistics for either categorical, nominal or numerical variables.
     """
 
     if elem["scale"] == "cat":
@@ -153,14 +153,14 @@ def get_univariate_statistics(
 
 
 def get_value_counts_and_frequencies(elem: Variable, data: pd.DataFrame) -> Categories:
-    """Call function to generate frequencies depending on the variable type
+    """Call function to generate frequencies depending on the variable type.
 
-    Input:
-    elem: dict
-    data: pandas DataFrame
+    Args:
+        elem: Contains information of one variable.
+        data: DataFrame of imported data.
 
-    Output:
-    statistics: OrderedDict
+    Returns:
+        Statistics for either categorical, nominal or numerical variables.
     """
 
     statistics: Categories = Categories()
@@ -175,15 +175,15 @@ def get_value_counts_and_frequencies(elem: Variable, data: pd.DataFrame) -> Cate
 def generate_statistics(
     data: pd.DataFrame, metadata: List[Variable], study: str
 ) -> List[Variable]:
-    """Prepare statistics for every variable
+    """Prepare statistics for every variable.
 
-    Input:
-    data: pandas DataFrame
-    metadata: dict
-    study: string
+    Args:
+        data: DataFrame of imported data.
+        metadata: Metadata of the imported data.
+        study: Name of the study.
 
-    Output:
-    stat: OrderedDict
+    Returns:
+        Combine calculations and meta information.
     """
 
     for elem in metadata:
@@ -205,34 +205,8 @@ def write_json(
 ) -> None:
     """Main function to write json.
 
-    metadata_test = [
-        {
-            "name": "HKIND",
-            "label": "test for categorical var",
-            "type": "category",
-            "scale": "cat",
-            "categories": {
-                "values": [-1, 1, 2],
-                "labels": ["missing", "yes", "no"],
-                "missings": [True, False, False],
-            },
-        },
-        {
-            "name": "HM04",
-            "label": "test for numerical var",
-            "type": "int",
-            "scale": "number",
-        },
-        {
-            "name": "HKGEBA",
-            "label": "test for string var",
-            "type": "str",
-            "scale": "string",
-        }
-    ]
-
     Args:
-        data: Datatable of imported data.
+        data: DataFrame of imported data.
         metadata: Metadata of the imported data.
         filename: Name of the output json file.
         study: Name of the study.
