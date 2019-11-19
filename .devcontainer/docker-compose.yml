@@ -9,6 +9,6 @@ services:
     entrypoint: "tail -f /dev/null"
     volumes:
       - ../:/home/vscode/collect_stata
-      - ~/.ssh/docker-dev/:/home/vscode/.ssh
+      - ~/.ssh/:/home/vscode/.ssh
       - ~/.gnupg/:/home/vscode/.gnupg/
     user: vscode
