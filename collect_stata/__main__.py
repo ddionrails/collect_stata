@@ -1,4 +1,7 @@
-"""Contains everything that enables cli usage of the package."""
+"""Contains everything that enables cli usage of the package.
+
+Command line options for stata_to_json are set in main().
+"""
 __author__ = "Marius Pahl"
 
 import argparse
@@ -61,7 +64,7 @@ def main() -> None:
     start_time = time.time()
 
     stata_to_json = StataToJson(
-        study_name=study, input_path=input_path, output_path=output_path, latin1=latin1
+        study=study, input_folder=input_path, output_folder=output_path, latin1=latin1
     )
 
     if run_parallel:
@@ -76,52 +79,62 @@ def main() -> None:
 class StataToJson:
     """Discover files to work on and handle top level data flow.
 
-    Input:
-    study_name: Name of the study
-    input_path: path to data folder
-    output_path: path to output folder
+    Args:
+        study: Name of the study.
+        input_folder: Folder path where dta files should be searched.
+        output_folder: Folder path to where the output files will be written to.
+        latin1: Tells the class if the input data is Latin-1 encoded.
 
-    This method reads stata file(s), transforms it in tabular data package.
-    After this, it writes it out as csv and json files.
+    Attributes:
+        study: Name of the study.
+        input_folder: Folder path where dta files should be searched.
+        output_folder: Folder path to where the output files will be written to.
+        latin1: Tells the class if the input data is Latin-1 encoded.
     """
 
     study: str
-    input_path: Path
-    output_path: Path
+    input_folder: Path
+    output_folder: Path
     latin1: bool
 
     def __init__(
-        self, study_name: str, input_path: Path, output_path: Path, latin1: bool = False
+        self, study: str, input_folder: Path, output_folder: Path, latin1: bool = False
     ) -> None:
 
-        self.study = study_name
-        self.input_path = input_path
-        self.output_path = output_path
+        self.study = study
+        self.input_folder = input_folder
+        self.output_folder = output_folder
         self.latin1 = latin1
 
-        output_path.mkdir(parents=True, exist_ok=True)
+        output_folder.mkdir(parents=True, exist_ok=True)
 
     def parallel_run(self) -> None:
-        """Run processes per file in parallel."""
-        # gather the processes
+        """Run data processing per file in parallel."""
         processes = []
-        for file in self.input_path.glob("*.dta"):
+        # Start the processes
+        for file in self.input_folder.glob("*.dta"):
             process = Process(target=self._run, args=[file])
             processes.append(process)
             process.start()
 
-        # complete the processes
+        # Complete the processes
         for process in processes:
             process.join()
 
     def single_process_run(self) -> None:
-        """Run on files sequentially."""
-        for file in self.input_path.glob("*.dta"):
+        """Run data processing on all files sequentially."""
+        for file in self.input_folder.glob("*.dta"):
             self._run(file=file)
 
     def _run(self, file: Path) -> None:
-        """Encapsulate data processing run with multiprocessing."""
-        output_file = self.output_path.joinpath(file.stem).with_suffix(".json")
+        """Encapsulate data processing
+
+        Can be run as multiprocessing process.
+
+        Args:
+            file: The Stata file to process.
+        """
+        output_file = self.output_folder.joinpath(file.stem).with_suffix(".json")
 
         stata_data = StataDataExtractor(file)
         stata_data.parse_file()
