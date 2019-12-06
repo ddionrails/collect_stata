@@ -30,7 +30,7 @@ RUN apt-get update \
     && apt-get -y install --no-install-recommends apt-utils gnupg dialog 2>&1 \
     #
     # Verify git, process tools, lsb-release (common in install instructions for CLIs) installed
-    && apt-get -y install git iproute2 procps lsb-release gcc \
+    && apt-get -y install git bash-completion iproute2 procps lsb-release gcc \
     #
     # Install pylint
     && pip --disable-pip-version-check --no-cache-dir install pylint \
