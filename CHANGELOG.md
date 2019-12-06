@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
 
 - use of TypedDicts to improve type hint readability.
 - concurrent processing with multiprocessing library.
-- VSCode
+- VSCode dev container setup.
 
 ### Changed
 
