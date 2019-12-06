@@ -3,11 +3,13 @@ __author__ = "Marius Pahl"
 
 import pathlib
 import warnings
-from typing import Dict, List, Union
+from typing import List
 
 import pandas
 import pandas.io.stata
 from pandas.api.types import is_numeric_dtype
+
+from collect_stata.types import Variable
 
 
 class StataDataExtractor:
@@ -30,7 +32,7 @@ class StataDataExtractor:
     file_name: pathlib.Path
     reader: pandas.io.stata.StataReader
     data: pandas.DataFrame
-    metadata: List[Dict[str, Union[str, Dict[str, List[Union[int, str, bool]]]]]]
+    metadata: List[Variable]
 
     def __init__(self, file_name: pathlib.Path):
         self.file_name = file_name
@@ -45,9 +47,7 @@ class StataDataExtractor:
         self.data = self.reader.read()
         self.metadata = self.get_variable_metadata()
 
-    def get_variable_metadata(
-        self
-    ) -> List[Dict[str, Union[str, Dict[str, List[Union[int, str, bool]]]]]]:
+    def get_variable_metadata(self) -> List[Variable]:
         """Gather metadata about variables in the data.
 
         Stores computed metadata in the attribute metadata.
@@ -68,7 +68,7 @@ class StataDataExtractor:
         variable_labels = self.reader.variable_labels()
         value_labels = self.reader.value_labels()
         for variable in self.reader.varlist:
-            variable_meta = dict()
+            variable_meta: Variable = Variable()
             variable_meta["name"] = variable
             variable_meta["dataset"] = dataset
             variable_meta["label"] = variable_labels.get(variable, None)
