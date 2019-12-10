@@ -15,7 +15,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - Bump supported python version from 3.6 to 3.8, to get new typing functionality.
-- Internal structure for metedata is now the same as the structure of the output.
+- Internal structure for metadata is now the same as the structure of the output.
 - Refactor project; make use of OOP to reduce data flow complexity.
 
   - Data that was passed a lot between functions
