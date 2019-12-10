@@ -185,9 +185,10 @@ def generate_statistics(
     Output:
     stat: OrderedDict
     """
-
+    counter = 0
     for elem in metadata:
-        logging.info("%s", str(len(metadata)))
+        counter = counter + 1
+        logging.info("%s/%s", str(counter), str(len(metadata)))
         elem["study"] = study
         elem.update({"statistics": get_univariate_statistics(elem, data)})
         if elem["scale"] == "cat":

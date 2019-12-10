@@ -1,0 +1,25 @@
+[
+    {
+        "name": "TESTCAT",
+        "label": "test for categorical variable",
+        "type": "category",
+        "scale": "cat",
+        "categories": {
+            "values": [-1, 1, 2],
+            "labels": ["missing", "a", "b"],
+            "missings": [true, false, false]
+            }
+    },
+    {
+        "name": "TESTSTRING",
+        "label": "test for nominal variable",
+        "type": "str",
+        "scale": "string"
+    },
+    {
+        "name": "TESTNUMBER",
+        "label": "test for numerical variable",
+        "type": "int",
+        "scale": "number"
+    }
+]
