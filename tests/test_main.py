@@ -36,9 +36,9 @@ def test_cli_with_required_arguments() -> None:
     ) as mocked_stata_to_json:
         main()
     expected_arguments = dict(
-        study_name="some-study",
-        input_path=pathlib.Path("input_path"),
-        output_path=pathlib.Path("output_path"),
+        study="some-study",
+        input_folder=pathlib.Path("input_path"),
+        output_folder=pathlib.Path("output_path"),
         latin1=True,
     )
     mocked_stata_to_json.assert_called_once_with(**expected_arguments)

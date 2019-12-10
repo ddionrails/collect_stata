@@ -22,7 +22,7 @@ setup(
     version=VERSION,
     url=URL,
     description=DESCRIPTION,
-    long_description=open("./README.md").read(),
+    long_description=open("./README.rst").read(),
     author=AUTHOR,
     author_email=EMAIL,
     python_requires=REQUIRES_PYTHON,
