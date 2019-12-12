@@ -9,10 +9,10 @@ from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
 
+from collect_stata.types import Categories, Numeric, Variable
 
-def get_categorical_frequencies(
-    elem: Dict[str, Dict[str, List[Union[int, str, bool]]]], data: pd.DataFrame
-) -> Dict[str, List[int]]:
+
+def get_categorical_frequencies(elem: Variable, data: pd.DataFrame) -> Categories:
     """Generate dict with frequencies and labels for categorical variables
 
     Input:
@@ -23,7 +23,7 @@ def get_categorical_frequencies(
     cat_dict: dict
     """
 
-    frequencies = []
+    frequencies: List[Numeric] = []
 
     value_count = data[elem["name"]].value_counts()
 
@@ -47,8 +47,7 @@ def get_categorical_frequencies(
 
 
 def get_categorical_statistics(
-    elem: Dict[str, Union[str, Union[Dict[str, List[Union[int, str, bool]]]]]],
-    data: pd.DataFrame,
+    elem: Variable, data: pd.DataFrame
 ) -> Dict[str, Union[int, float]]:
     """Generate dict with statistics for categorical variables
 
@@ -69,10 +68,7 @@ def get_categorical_statistics(
     return {"valid": valid, "invalid": invalid}
 
 
-def get_nominal_statistics(
-    elem: Dict[str, Union[str, Union[Dict[str, List[Union[int, str, bool]]]]]],
-    data: pd.DataFrame,
-) -> Dict[str, Union[int, float]]:
+def get_nominal_statistics(elem: Variable, data: pd.DataFrame) -> Dict[str, Numeric]:
     """Generate dict with statistics for nominal variables
 
     Input:
@@ -92,8 +88,7 @@ def get_nominal_statistics(
 
 
 def get_numerical_statistics(
-    elem: Dict[str, Union[str, Union[Dict[str, List[Union[int, str, bool]]]]]],
-    data: pd.DataFrame,
+    elem: Variable, data: pd.DataFrame
 ) -> Dict[str, Union[float, int]]:
     """Generate dict with statistics for numerical variables
 
@@ -127,7 +122,7 @@ def get_numerical_statistics(
 
 
 def get_univariate_statistics(
-    elem: Dict[str, Union[str, Union[Dict[str, Any]]]], data: pd.DataFrame
+    elem: Variable, data: pd.DataFrame
 ) -> Dict[str, Union[int, float]]:
     """Call function to generate statistics depending on the variable type
 
@@ -157,9 +152,7 @@ def get_univariate_statistics(
     return statistics
 
 
-def get_value_counts_and_frequencies(
-    elem: Dict[str, Dict[str, List[Union[int, str, bool]]]], data: pd.DataFrame
-) -> Dict[str, List[int]]:
+def get_value_counts_and_frequencies(elem: Variable, data: pd.DataFrame) -> Categories:
     """Call function to generate frequencies depending on the variable type
 
     Input:
@@ -170,7 +163,7 @@ def get_value_counts_and_frequencies(
     statistics: OrderedDict
     """
 
-    statistics: Dict[str, List[int]] = OrderedDict()
+    statistics: Categories = Categories()
     _scale = elem["scale"]
 
     if _scale == "cat":
@@ -180,8 +173,8 @@ def get_value_counts_and_frequencies(
 
 
 def generate_statistics(
-    data: pd.DataFrame, metadata: List[Dict[str, Any]], study: str
-) -> List[Dict[str, Union[str, Dict[str, List[Union[int, float, str, bool]]]]]]:
+    data: pd.DataFrame, metadata: List[Variable], study: str
+) -> List[Variable]:
     """Prepare statistics for every variable
 
     Input:
@@ -245,6 +238,7 @@ def write_json(
     metadata_de: Optional[List[Dict[str, Any]]],
     filename: pathlib.Path,
     study: str,
+    latin1: bool,
 ) -> None:
     """Main function to write json.
 
@@ -313,5 +307,17 @@ def write_json(
     stat = generate_statistics(data, metadata, study)
 
     logging.info('write "%s"', filename)
-    with open(filename, "w") as json_file:
-        json.dump(stat, json_file, indent=2)
+    # Pandas decodes data with Latin-1
+    # The source will be decoded incorrectly,
+    # if the source files are UTF-8 or anything other than Latin-1.
+    # The data is encoded back to Latin-1 here
+    # to minimize en/decoding errors.
+    # This decode encode circle will most likely leave the original encoding intact.
+    # If the source is actually a real Latin-1 encoded file, writing it back into Latin-1
+    # will also make the output a Latin-1 file. We do not want this.
+    # But since, in this case, the source was correctly decoded by pandas, we can just
+    # write the file with UTF-8 encoding.
+    # TL;DR: if the source is Latin-1 encoded we can safely use utf-8 for writing output.
+    encoding = "utf-8" if latin1 else "latin1"
+    with open(filename, "w+", encoding=encoding) as json_file:
+        json.dump(stat, json_file, indent=2, ensure_ascii=False)

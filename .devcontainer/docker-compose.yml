@@ -1,0 +1,14 @@
+version: "2.4"
+
+services:
+  collect_stata:
+    image: collect_stata
+    build:
+      context: ../
+      dockerfile: ./.devcontainer/Dockerfile
+    entrypoint: "tail -f /dev/null"
+    volumes:
+      - ../:/home/vscode/collect_stata
+      - ~/.ssh/:/home/vscode/.ssh
+      - ~/.gnupg/:/home/vscode/.gnupg/
+    user: vscode
