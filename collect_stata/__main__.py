@@ -4,10 +4,10 @@ __author__ = "Marius Pahl"
 import argparse
 import logging
 import os
-import pathlib import Path
 import sys
 import time
 from multiprocessing import Process
+from pathlib import Path
 from typing import Optional
 
 from collect_stata.read_stata import StataDataExtractor
@@ -55,9 +55,7 @@ def main() -> None:
         parser.error("At least one input required")
     study = args.study
     input_path = Path(args.input) if args.input is not None else None
-    input_german_path = (
-        Path(args.input_german) if args.input_german is not None else None
-    )
+    input_german_path = Path(args.input_german) if args.input_german is not None else None
     output_path = Path(args.output)
 
     run_parallel = args.multiprocessing
@@ -71,7 +69,11 @@ def main() -> None:
     start_time = time.time()
 
     stata_to_json = StataToJson(
-        study_name=study, input_path=input_path, input_german_path=input_german_path, output_path=output_path, latin1=latin1
+        study_name=study,
+        input_path=input_path,
+        input_german_path=input_german_path,
+        output_path=output_path,
+        latin1=latin1,
     )
 
     if run_parallel:
@@ -102,8 +104,13 @@ class StataToJson:
     output_path: Path
     latin1: bool
 
-    def __init__(
-        self, study_name: str, input_path: Optional[Path], input_german_path: Optional[Path], output_path: Path, latin1: bool = False
+    def __init__(  # pylint: disable=too-many-arguments
+        self,
+        study_name: str,
+        input_path: Optional[Path],
+        input_german_path: Optional[Path],
+        output_path: Path,
+        latin1: bool = False,
     ) -> None:
 
         self.study = study_name
@@ -126,17 +133,18 @@ class StataToJson:
                 process = Process(target=self._run, args=[file, None])
         elif self.input_path is not None and self.input_german_path is not None:
             for file in self.input_path.glob("*.dta"):
-                file_de = pathlib.Path(
+                file_de = Path(
                     str(self.input_german_path) + "/" + os.path.basename(str(file))
                 )
                 process = Process(target=self._run, args=[file, file_de])
-        
+
         processes.append(process)
         process.start()
 
         # complete the processes
         for process in processes:
             process.join()
+
     def single_process_run(self) -> None:
         """Run on files sequentially."""
         if self.input_path is None and self.input_german_path is not None:
@@ -147,7 +155,7 @@ class StataToJson:
                 self._run(file=file, file_de=None)
         if self.input_path is not None and self.input_german_path is not None:
             for file in self.input_path.glob("*.dta"):
-                file_de = pathlib.Path(
+                file_de = Path(
                     str(self.input_german_path) + "/" + os.path.basename(str(file))
                 )
                 self._run(file=file, file_de=file_de)
@@ -155,12 +163,7 @@ class StataToJson:
     def _run(self, file: Optional[Path], file_de: Optional[Path]) -> None:
         """Encapsulate data processing run with multiprocessing."""
         if file is None:
-            output_file = self.output_path.joinpath(file_de.stem).with_suffix(".json")
-            stata_data_de = StataDataExtractor(file_de)
-            stata_data_de.parse_file()
-            data = stata_data_de.data
-            metadata_english = None
-            metadata_german = stata_data_de.metadata
+            return None
 
         if file is not None:
             output_file = self.output_path.joinpath(file.stem).with_suffix(".json")
@@ -174,8 +177,14 @@ class StataToJson:
                 metadata_german = stata_data_de.get_variable_metadata()
 
         write_json(
-            data, metadata_english, metadata_german, output_file, study=self.study, latin1=self.latin1
+            data,
+            metadata_english,
+            metadata_german,
+            output_file,
+            study=self.study,
+            latin1=self.latin1,
         )
+        return None
 
 
 if __name__ == "__main__":
