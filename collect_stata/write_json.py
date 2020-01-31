@@ -4,7 +4,7 @@ __author__ = "Marius Pahl"
 import json
 import logging
 import pathlib
-from collections import Counter, OrderedDict
+from collections import Counter
 from typing import Any, Dict, List, Optional, Union
 
 import pandas as pd
@@ -33,9 +33,17 @@ def get_categorical_frequencies(elem: Variable, data: pd.DataFrame) -> Categorie
             elem["categories"]["values"].append(int(value))
             elem["categories"]["labels"].append(str(int(value)))
             if value < 0:
-                elem["categories"]["missings"].append(True)
+                try:
+                    elem["categories"]["missings"].append(True)
+                except KeyError:
+                    elem["categories"]["missings"] = list()
+                    elem["categories"]["missings"].append(True)
             else:
-                elem["categories"]["missings"].append(False)
+                try:
+                    elem["categories"]["missings"].append(True)
+                except KeyError:
+                    elem["categories"]["missings"] = list()
+                    elem["categories"]["missings"].append(False)
 
     for value in elem["categories"]["values"]:
         try:
@@ -232,7 +240,7 @@ def update_metadata(
     return metadata
 
 
-def write_json(
+def write_json(  # pylint: disable=too-many-arguments
     data: pd.DataFrame,
     metadata_en: Optional[List[Dict[str, Any]]],
     metadata_de: Optional[List[Dict[str, Any]]],
