@@ -78,7 +78,7 @@ class StataDataExtractor:
                 # interpretet as being on a categorical scale.
                 variable_meta["scale"] = "cat"
 
-                variable_meta["categories"]["values"].append(value)
+                variable_meta["categories"]["values"].append(int(value))
                 variable_meta["categories"]["labels"].append(label)
 
             if "scale" not in variable_meta:

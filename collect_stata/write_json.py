@@ -118,14 +118,14 @@ def get_numerical_statistics(
 
     summary = data_withoutmissings.describe()
     return {
-        "Min.": summary["min"],
-        "1st Qu.": summary["25%"],
-        "Median": summary["50%"],
-        "Mean": summary["mean"],
-        "3rd Qu.": summary["75%"],
-        "Max.": summary["max"],
-        "valid": valid,
-        "invalid": invalid,
+        "Min.": float(summary["min"]),
+        "1st Qu.": float(summary["25%"]),
+        "Median": float(summary["50%"]),
+        "Mean": float(summary["mean"]),
+        "3rd Qu.": float(summary["75%"]),
+        "Max.": float(summary["max"]),
+        "valid": int(valid),
+        "invalid": int(invalid),
     }
 
 
