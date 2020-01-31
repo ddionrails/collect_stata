@@ -138,8 +138,8 @@ class StataToJson:
                 )
                 process = Process(target=self._run, args=[file, file_de])
 
-        processes.append(process)
-        process.start()
+                processes.append(process)
+                process.start()
 
         # complete the processes
         for process in processes:
