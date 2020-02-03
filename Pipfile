@@ -13,6 +13,7 @@ pytest = "*"
 pytest-cov = "*"
 deepdiff = "*"
 mypy = "*"
+bandit = "*"
 
 [requires]
 python_version = "3.8"
