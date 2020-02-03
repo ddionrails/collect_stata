@@ -5,7 +5,7 @@ import json
 import logging
 import pathlib
 from collections import Counter
-from typing import Any, Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 import pandas as pd
 
@@ -205,9 +205,8 @@ def generate_statistics(
 
 
 def update_metadata(
-    metadata_en: Optional[List[Dict[str, Any]]],
-    metadata_de: Optional[List[Dict[str, Any]]],
-) -> List[Dict[str, Any]]:
+    metadata_en: Optional[List[Variable]], metadata_de: Optional[List[Variable]]
+) -> List[Variable]:
     """Get information of german and english metadata and create a new metadata variable
 
     Input:
@@ -242,8 +241,8 @@ def update_metadata(
 
 def write_json(  # pylint: disable=too-many-arguments
     data: pd.DataFrame,
-    metadata_en: Optional[List[Dict[str, Any]]],
-    metadata_de: Optional[List[Dict[str, Any]]],
+    metadata_en: Optional[List[Variable]],
+    metadata_de: Optional[List[Variable]],
     filename: pathlib.Path,
     study: str,
     latin1: bool,
@@ -327,5 +326,5 @@ def write_json(  # pylint: disable=too-many-arguments
     # write the file with UTF-8 encoding.
     # TL;DR: if the source is Latin-1 encoded we can safely use utf-8 for writing output.
     encoding = "utf-8" if latin1 else "latin1"
-    with open(filename, "w+", encoding=encoding) as json_file:
+    with open(filename, "w", encoding=encoding) as json_file:
         json.dump(stat, json_file, indent=2, ensure_ascii=False)

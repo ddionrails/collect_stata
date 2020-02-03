@@ -35,10 +35,11 @@ def test_cli_with_required_arguments() -> None:
         "collect_stata.__main__.StataToJson"
     ) as mocked_stata_to_json:
         main()
-    expected_arguments = dict(
-        study_name="some-study",
-        input_path=pathlib.Path("input_path"),
-        output_path=pathlib.Path("output_path"),
-        latin1=True,
-    )
-    mocked_stata_to_json.assert_called_once_with(**expected_arguments)
+        expected_arguments = dict(
+            study_name="some-study",
+            input_path=pathlib.Path("input_path").absolute(),
+            output_path=pathlib.Path("output_path").absolute(),
+            input_german_path=None,
+            latin1=True,
+        )
+        mocked_stata_to_json.assert_called_once_with(**expected_arguments)

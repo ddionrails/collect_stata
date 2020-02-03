@@ -20,6 +20,24 @@ repos:
         language: system
         files: ".*.py"
         pass_filenames: true
+      - id: pytest
+        name: unittest
+        entry: pytest
+        args:
+          [
+            "-rf",
+            "--cov=transformations_cleaner",
+            "--cov-report",
+            "xml:.cov_report/coverage.xml",
+            "--cov-report",
+            "term",
+            "--cov-report",
+            "term-missing",
+            "--cov=transformations_cleaner",
+          ]
+        language: system
+        files: ".*.py"
+        pass_filenames: false
   - repo: https://github.com/asottile/seed-isort-config
     rev: 44bc4d3364b054fe7ec1e0a40379b41e44774c46
     hooks:
