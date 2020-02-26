@@ -32,18 +32,10 @@ def get_categorical_frequencies(elem: Variable, data: pd.DataFrame) -> Categorie
         if value not in elem["categories"]["values"]:
             elem["categories"]["values"].append(int(value))
             elem["categories"]["labels"].append(str(int(value)))
-            if value < 0:
-                try:
-                    elem["categories"]["missings"].append(True)
-                except KeyError:
-                    elem["categories"]["missings"] = list()
-                    elem["categories"]["missings"].append(True)
-            else:
-                try:
-                    elem["categories"]["missings"].append(True)
-                except KeyError:
-                    elem["categories"]["missings"] = list()
-                    elem["categories"]["missings"].append(False)
+
+    elem["categories"]["missings"] = [
+        -8 <= value < 0 for value in elem["categories"]["values"]
+    ]
 
     for value in elem["categories"]["values"]:
         try:
