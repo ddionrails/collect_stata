@@ -7,6 +7,7 @@ import pathlib
 from collections import Counter
 from typing import Dict, List, Optional, Union
 
+import numpy
 import pandas as pd
 
 from collect_stata.types import Categories, Numeric, Variable
@@ -110,14 +111,14 @@ def get_numerical_statistics(
 
     summary = data_withoutmissings.describe()
     return {
-        "Min.": float(summary["min"]),
-        "1st Qu.": float(summary["25%"]),
-        "Median": float(summary["50%"]),
-        "Mean": float(summary["mean"]),
-        "3rd Qu.": float(summary["75%"]),
-        "Max.": float(summary["max"]),
-        "valid": int(valid),
-        "invalid": int(invalid),
+        "Min.": float(numpy.nan_to_num(summary["min"])),
+        "1st Qu.": float(numpy.nan_to_num(summary["25%"])),
+        "Median": float(numpy.nan_to_num(summary["50%"])),
+        "Mean": float(numpy.nan_to_num(summary["mean"])),
+        "3rd Qu.": float(numpy.nan_to_num(summary["75%"])),
+        "Max.": float(numpy.nan_to_num(summary["max"])),
+        "valid": int(numpy.nan_to_num(valid)),
+        "invalid": int(numpy.nan_to_num(invalid)),
     }
 
 
@@ -166,8 +167,7 @@ def get_value_counts_and_frequencies(elem: Variable, data: pd.DataFrame) -> Cate
     statistics: Categories = Categories()
     _scale = elem["scale"]
 
-    if _scale == "cat":
-        statistics.update(get_categorical_frequencies(elem, data))
+    statistics.update(get_categorical_frequencies(elem, data))
 
     return statistics
 
