@@ -39,7 +39,7 @@ def test_cli_with_required_arguments() -> None:
             study_name="some-study",
             input_path=pathlib.Path("input_path").absolute(),
             output_path=pathlib.Path("output_path").absolute(),
-            input_german_path=None,
+            input_de_path=None,
             latin1=True,
         )
         mocked_stata_to_json.assert_called_once_with(**expected_arguments)

@@ -197,43 +197,35 @@ def generate_statistics(
 
 
 def update_metadata(
-    metadata_en: Optional[List[Variable]], metadata_de: Optional[List[Variable]]
+    metadata: List[Variable], metadata_de: Optional[List[Variable]]
 ) -> List[Variable]:
     """Get information of german and english metadata and create a new metadata variable
 
     Input:
-    metadata_en: Metadata of the english imported data.
+    metadata: Metadata of the main (english if possible) imported data.
     metadata_de: Metadata of the german imported data.
 
     Output:
     metadata: Metadata variable with german and english labels if given.
     """
 
-    if metadata_de is None and metadata_en is not None:
-        metadata = metadata_en.copy()
-        for var in metadata:
-            var["label_de"] = ""
-    elif metadata_en is None and metadata_de is not None:
-        metadata = metadata_de.copy()
-        for var in metadata:
-            var["label_de"] = var.pop("label")
-            var["label"] = ""
-            if var["scale"] == "cat":
-                var["categories"]["labels_de"] = var["categories"].pop("labels")
-                var["categories"]["labels"] = list()
-    elif metadata_en is not None and metadata_de is not None:
-        metadata = metadata_en.copy()
-        for var, var_de in zip(metadata, metadata_de):
-            var["label_de"] = var_de["label"]
-            if var["scale"] == "cat":
-                var["categories"]["labels_de"] = var_de["categories"]["labels"]
+    if metadata and not metadata_de:
+        for main_variable in metadata:
+            main_variable["label_de"] = ""
+    elif metadata and metadata_de:
+        for main_variable, variable_de in zip(metadata, metadata_de):
+            main_variable["label_de"] = variable_de["label"]
+            if main_variable["scale"] == "cat":
+                main_variable["categories"]["labels_de"] = variable_de["categories"][
+                    "labels"
+                ]
 
     return metadata
 
 
 def write_json(  # pylint: disable=too-many-arguments
     data: pd.DataFrame,
-    metadata_en: Optional[List[Variable]],
+    metadata: List[Variable],
     metadata_de: Optional[List[Variable]],
     filename: pathlib.Path,
     study: str,
@@ -301,7 +293,7 @@ def write_json(  # pylint: disable=too-many-arguments
         study: Name of the study.
     """
 
-    metadata = update_metadata(metadata_en, metadata_de)
+    metadata = update_metadata(metadata, metadata_de)
 
     stat = generate_statistics(data, metadata, study)
 

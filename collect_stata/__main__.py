@@ -67,7 +67,7 @@ def main() -> None:
         parser.error("At least one input required")
     study = args.study
     input_path = Path(args.input).absolute()
-    input_german_path = Path(args.input_german) if args.input_german else None
+    input_de_path = Path(args.input_german) if args.input_german else None
     output_path = Path(args.output).absolute()
 
     run_parallel = args.multiprocessing
@@ -83,7 +83,7 @@ def main() -> None:
     stata_to_json = StataToJson(
         study_name=study,
         input_path=input_path,
-        input_german_path=input_german_path,
+        input_de_path=input_de_path,
         output_path=output_path,
         latin1=latin1,
     )
@@ -103,7 +103,7 @@ class StataToJson:
     Input:
     study_name: Name of the study
     input_path: Path to main data folder. (Data should be english if available)
-    input_german_path: path to german data folder.
+    input_de_path: path to german data folder.
     output_path: path to output folder
 
     This method reads stata file(s), transforms it in tabular data package.
@@ -112,7 +112,7 @@ class StataToJson:
 
     study: str
     input_path: Path
-    input_german_path: Optional[Path]
+    input_de_path: Optional[Path]
     output_path: Path
     latin1: bool
 
@@ -121,13 +121,13 @@ class StataToJson:
         study_name: str,
         input_path: Path,
         output_path: Path,
-        input_german_path: Optional[Path] = None,
+        input_de_path: Optional[Path] = None,
         latin1: bool = False,
     ) -> None:
 
         self.study = study_name
         self.input_path = input_path
-        self.input_german_path = input_german_path
+        self.input_de_path = input_de_path
         self.output_path = output_path
         self.latin1 = latin1
 
@@ -136,15 +136,16 @@ class StataToJson:
     def parallel_run(self) -> None:
         """Run processes per file in parallel."""
         # gather the processes
+
         processes = []
-        if self.input_path and not self.input_german_path:
+        if self.input_path and not self.input_de_path:
             for file in self.input_path.glob("*.dta"):
                 process = Process(target=self._run, args=(file, None))
                 processes.append(process)
                 process.start()
-        elif self.input_path and self.input_german_path:
+        elif self.input_path and self.input_de_path:
             for file in self.input_path.glob("*.dta"):
-                file_de = Path(self.input_german_path.joinpath(file.name))
+                file_de = Path(self.input_de_path.joinpath(file.name))
                 process = Process(target=self._run, args=(file, file_de))
 
                 processes.append(process)
@@ -157,13 +158,19 @@ class StataToJson:
 
     def single_process_run(self) -> None:
         """Run on files sequentially."""
-        if self.input_german_path is None and self.input_path is not None:
+
+        if not self.input_path.is_dir():
+            self._run(self.input_path, self.input_de_path)
+            return None
+
+        if self.input_path and not self.input_de_path:
             for file in self.input_path.glob("*.dta"):
                 self._run(file=file, file_de=None)
-        if self.input_path is not None and self.input_german_path is not None:
+        if self.input_path is not None and self.input_de_path is not None:
             for file in self.input_path.glob("*.dta"):
-                file_de = Path(self.input_german_path.joinpath(file.name))
+                file_de = Path(self.input_de_path.joinpath(file.name))
                 self._run(file=file, file_de=file_de)
+        return None
 
     def _run(self, file: Path, file_de: Optional[Path]) -> None:
         """Encapsulate data processing run with multiprocessing."""
@@ -172,19 +179,14 @@ class StataToJson:
         stata_data = StataDataExtractor(file)
         stata_data.parse_file()
         data = stata_data.data
-        metadata_english = stata_data.metadata
-        metadata_german = None
+        metadata = stata_data.get_variable_metadata()
+        metadata_de = None
         if file_de:
             stata_data_de = StataDataExtractor(file_de)
-            metadata_german = stata_data_de.get_variable_metadata()
+            metadata_de = stata_data_de.get_variable_metadata()
 
         write_json(
-            data,
-            metadata_english,
-            metadata_german,
-            output_file,
-            study=self.study,
-            latin1=self.latin1,
+            data, metadata, metadata_de, output_file, study=self.study, latin1=self.latin1
         )
 
 
