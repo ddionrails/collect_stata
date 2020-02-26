@@ -67,13 +67,13 @@ class StataDataExtractor:
 
         variable_labels = self.reader.variable_labels()
         value_labels = self.reader.value_labels()
-        for variable in self.reader.varlist:
+        for variable, valuelabel_link in zip(self.reader.varlist, self.reader.lbllist):
             variable_meta: Variable = Variable()
             variable_meta["name"] = variable
             variable_meta["dataset"] = dataset
             variable_meta["label"] = variable_labels.get(variable, None)
             variable_meta["categories"] = {"values": [], "labels": []}
-            for value, label in value_labels.get(variable, dict()).items():
+            for value, label in value_labels.get(valuelabel_link, dict()).items():
                 # At the moment if a variable has value labels attached, it is
                 # interpretet as being on a categorical scale.
                 variable_meta["scale"] = "cat"
