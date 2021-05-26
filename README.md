@@ -5,6 +5,12 @@ and writes out a json-file with these calculations and the metadata (extracted f
 
 The purpose of the project is the preprocessing of data for [ddionrails](https://github.com/ddionrails/ddionrails).
 
+## Install from source
+
+```
+pip install git+git://github.com/ddionrails/collect_stata.git@v0.1.0
+```
+
 ## Setup for development
 
 * Install dev tools

@@ -8,7 +8,7 @@ URL = "https://github.com/ddionrails/collect_stata"
 EMAIL = "mpahl@diw.de"
 AUTHOR = "Marius Pahl"
 REQUIRES_PYTHON = ">=3.8.0"
-VERSION = "0.0.1"
+VERSION = "0.1.0"
 CLASSIFIERS = [
     "Development Status :: 3 - Alpha",
     "Programming Language :: Python :: 3.8",

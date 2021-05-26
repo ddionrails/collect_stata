@@ -30,7 +30,7 @@ def main() -> None:
         "-g",
         help=(
             "Path to local german stata files. "
-            "Should be provided for bilingual output."
+            "Should be provided for bilingual output. "
             "Use -i input flag instead if data files are only provided in german."
         ),
     )
