@@ -20,9 +20,7 @@ pip install git+git://github.com/ddionrails/collect_stata.git@v0.1.0
 ## Usage
 
 ```shell
-pipenv shell
-
-(collect_stata) collect_stata -i [input_path] -o [output_path] -s [study_name]
+collect_stata -i [input_path] -o [output_path] -s [study_name]
 ```
 
 Example:
@@ -33,10 +31,11 @@ collect_stata -i ~/teststudy/ -o ~/test/ -s teststudy
 optional arguments:
 
 --help,    -h : Show help information
-
---debug,   -d : Set logging Level to DEBUG
-
---verbose, -v : Set logging Level to INFO
+--multiprocessing, -m
+                      Process stata files in parallel
+--latin1, -l          Set this if your source stata files are encoded with Latin-1 or Windows-1252
+--debug, -d           Set logging Level to DEBUG
+--verbose, -v         Set logging Level to INFO
 
 ## License
 [BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause)
