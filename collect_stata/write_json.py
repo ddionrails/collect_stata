@@ -8,12 +8,13 @@ from collections import Counter
 from typing import Dict, List, Optional, Union
 
 import numpy
-import pandas as pd
+import pandas
+from pandas.api.types import is_numeric_dtype, is_datetime64_any_dtype
 
 from collect_stata.types import Categories, Numeric, Variable
 
 
-def get_categorical_frequencies(elem: Variable, data: pd.DataFrame) -> Categories:
+def get_categorical_frequencies(elem: Variable, data: pandas.DataFrame) -> Categories:
     """Generate dict with frequencies and labels for categorical variables
 
     Input:
@@ -23,32 +24,11 @@ def get_categorical_frequencies(elem: Variable, data: pd.DataFrame) -> Categorie
     Output:
     cat_dict: dict
     """
-
-    frequencies: List[Numeric] = []
-
-    value_count = data[elem["name"]].value_counts()
-
-    # If values are not labeled in categorical variables, values become value and label
-    for value in value_count.index:
-        if value not in elem["categories"]["values"]:
-            elem["categories"]["values"].append(int(value))
-            elem["categories"]["labels"].append(str(int(value)))
-
-    elem["categories"]["missings"] = [
-        -8 <= value < 0 for value in elem["categories"]["values"]
-    ]
-
-    for value in elem["categories"]["values"]:
-        try:
-            frequencies.append(int(value_count[value]))
-        except KeyError:
-            frequencies.append(0)
-
-    return {"frequencies": frequencies}
+    pass
 
 
 def get_categorical_statistics(
-    elem: Variable, data: pd.DataFrame
+    elem: Variable, data: pandas.DataFrame
 ) -> Dict[str, Union[int, float]]:
     """Generate dict with statistics for categorical variables
 
@@ -69,7 +49,7 @@ def get_categorical_statistics(
     return {"valid": valid, "invalid": invalid}
 
 
-def get_nominal_statistics(elem: Variable, data: pd.DataFrame) -> Dict[str, Numeric]:
+def get_nominal_statistics(elem: Variable, data: pandas.DataFrame) -> Dict[str, Numeric]:
     """Generate dict with statistics for nominal variables
 
     Input:
@@ -89,7 +69,7 @@ def get_nominal_statistics(elem: Variable, data: pd.DataFrame) -> Dict[str, Nume
 
 
 def get_numerical_statistics(
-    elem: Variable, data: pd.DataFrame
+    elem: Variable, data: pandas.DataFrame
 ) -> Dict[str, Union[float, int]]:
     """Generate dict with statistics for numerical variables
 
@@ -101,7 +81,7 @@ def get_numerical_statistics(
     statistics: OrderedDict
     """
 
-    data_withoutmissings = data[data[elem["name"]] >= 0][elem["name"]]
+    data_without_missings = data[data[elem["name"]] >= 0][elem["name"]]
 
     total = data[elem["name"]].size
     invalid = int(data[elem["name"]].isnull().sum()) + int(
@@ -109,7 +89,7 @@ def get_numerical_statistics(
     )
     valid = total - invalid
 
-    summary = data_withoutmissings.describe()
+    summary = data_without_missings.describe()
     return {
         "Min.": float(numpy.nan_to_num(summary["min"])),
         "1st Qu.": float(numpy.nan_to_num(summary["25%"])),
@@ -123,7 +103,7 @@ def get_numerical_statistics(
 
 
 def get_univariate_statistics(
-    elem: Variable, data: pd.DataFrame
+    elem: Variable, data: pandas.DataFrame
 ) -> Dict[str, Union[int, float]]:
     """Call function to generate statistics depending on the variable type
 
@@ -135,45 +115,52 @@ def get_univariate_statistics(
     statistics: OrderedDict
     """
 
+    if is_datetime64_any_dtype(data[elem["name"]]):
+        data[elem["name"]] = data[elem["name"]].apply(str)
+        elem["scale"] = "string"
+
     if elem["scale"] == "cat":
-
         statistics = get_categorical_statistics(elem, data)
-
     elif elem["scale"] == "string":
-
         statistics = get_nominal_statistics(elem, data)
-
     elif elem["scale"] == "number":
-
-        statistics = get_numerical_statistics(elem, data)
-
+        try:
+            statistics = get_numerical_statistics(elem, data)
+        except TypeError:
+            statistics = dict()
     else:
         statistics = dict()
 
     return statistics
 
 
-def get_value_counts_and_frequencies(elem: Variable, data: pd.DataFrame) -> Categories:
-    """Call function to generate frequencies depending on the variable type
+def set_frequencies(variable_metadata: Variable, data: pandas.DataFrame) -> Variable:
+    """Store frequencies of variable values in an equally ordered list
 
-    Input:
-    elem: dict
-    data: pandas DataFrame
+    Args:
+        variable_metadata: A dictionary structure with metadata about a single
+                           variable. Passed variable metadata is 
+                           manipulated implicitly, since it is mutable and
+                           returned explicitly.
+        data:              The original dataset loaded by pandas.
 
-    Output:
-    statistics: OrderedDict
+    Returns:
+        The variable metadata with added list at ["categories"]["frequencies"].
+        List order is dependent on the list at ["categories"]["values"]
     """
 
-    statistics: Categories = Categories()
-    _scale = elem["scale"]
+    value_counts: pandas.Series = data[variable_metadata["name"]].value_counts()
 
-    statistics.update(get_categorical_frequencies(elem, data))
+    variable_metadata["categories"]["frequencies"] = [
+        int(value_counts[value]) if value in value_counts else 0
+        for value in variable_metadata["categories"]["values"]
+    ]
 
-    return statistics
+    return variable_metadata
 
 
 def generate_statistics(
-    data: pd.DataFrame, metadata: List[Variable], study: str
+    data: pandas.DataFrame, metadata: List[Variable], study: str
 ) -> List[Variable]:
     """Prepare statistics for every variable
 
@@ -186,12 +173,16 @@ def generate_statistics(
     stat: OrderedDict
     """
 
-    for elem in metadata:
-        logging.info("%s", str(len(metadata)))
-        elem["study"] = study
-        elem.update({"statistics": get_univariate_statistics(elem, data)})
-        if elem["scale"] == "cat":
-            elem["categories"].update(get_value_counts_and_frequencies(elem, data))
+    logging.info("Processing {} variables for", len(metadata))
+    for variable_metadata in metadata:
+        variable_metadata["study"] = study
+        variable_metadata["statistics"] = get_univariate_statistics(
+            variable_metadata, data
+        )
+        variable_metadata["categories"]["missings"] = [
+            -200 <= value < 0 for value in variable_metadata["categories"]["values"]
+        ]
+        variable_metadata = set_frequencies(variable_metadata, data)
 
     return metadata
 
@@ -211,7 +202,7 @@ def update_metadata(
 
     if metadata and not metadata_de:
         for main_variable in metadata:
-            main_variable["label_de"] = ""
+            main_variable["label_de"] = [""] * len(main_variable["label"])
     elif metadata and metadata_de:
         for main_variable, variable_de in zip(metadata, metadata_de):
             main_variable["label_de"] = variable_de["label"]
@@ -224,7 +215,7 @@ def update_metadata(
 
 
 def write_json(  # pylint: disable=too-many-arguments
-    data: pd.DataFrame,
+    data: pandas.DataFrame,
     metadata: List[Variable],
     metadata_de: Optional[List[Variable]],
     filename: pathlib.Path,

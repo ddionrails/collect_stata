@@ -76,10 +76,21 @@ class StataDataExtractor:
             for value, label in value_labels.get(valuelabel_link, dict()).items():
                 # At the moment if a variable has value labels attached, it is
                 # interpretet as being on a categorical scale.
-                variable_meta["scale"] = "cat"
+                if value > 0 and label:
+                    variable_meta["scale"] = "cat"
+                #elif variable_meta.get("scale","") != "cat" and not label:
+                #   variable_meta["scale"] = "number"
 
                 variable_meta["categories"]["values"].append(int(value))
                 variable_meta["categories"]["labels"].append(label)
+
+            variable_meta["categories"]["labels"] = self._sort_labels(
+                labels=variable_meta["categories"]["labels"],
+                values=variable_meta["categories"]["values"],
+            )
+            variable_meta["categories"]["values"] = sorted(
+                variable_meta["categories"]["values"]
+            )
 
             if "scale" not in variable_meta:
                 variable_meta["scale"] = self.get_variable_scale(
@@ -88,6 +99,12 @@ class StataDataExtractor:
             self.metadata.append(variable_meta)
 
         return self.metadata
+
+    @staticmethod
+    def _sort_labels(values: List[int], labels: List[str]) -> List[str]:
+        """Sort a label list on the corresponding value."""
+        label_list = [label for _, label in sorted(zip(values, labels))]
+        return label_list
 
     def get_variable_scale(self, variable_index: int) -> str:
         """Guess a variables scale.

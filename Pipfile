@@ -16,7 +16,7 @@ mypy = "*"
 bandit = "*"
 
 [requires]
-python_version = "3.8"
+python_version = "3.9"
 
 [packages]
-collect-stata = {editable = true,path = "."}
+collect-stata = {path = "."}
