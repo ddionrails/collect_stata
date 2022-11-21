@@ -3,11 +3,14 @@
 
 import pathlib
 import sys
+import unittest
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 import pytest
 
-from collect_stata.__main__ import main
+from collect_stata.__main__ import main, StataToJson
 
 
 def test_cli_without_arguments() -> None:
@@ -43,3 +46,22 @@ def test_cli_with_required_arguments() -> None:
             latin1=True,
         )
         mocked_stata_to_json.assert_called_once_with(**expected_arguments)
+
+
+class test_two_dataset_inputs(unittest.TestCase):
+    def test_two_inputs(self):
+        with TemporaryDirectory() as output_dir:
+            output_path = Path(output_dir)
+            study = "test-study"
+            input_path = pathlib.Path("tests/input/en")
+            input_de_path = pathlib.Path("tests/input/de")
+
+            stata_to_json = StataToJson(
+                study_name=study,
+                input_path=input_path,
+                input_de_path=input_de_path,
+                output_path=output_path,
+                latin1=True,
+            )
+            stata_to_json.single_process_run()
+
