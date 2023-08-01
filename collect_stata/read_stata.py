@@ -94,7 +94,7 @@ class StataDataExtractor:
 
             if "scale" not in variable_meta:
                 variable_meta["scale"] = self.get_variable_scale(
-                    self.reader.varlist.index(variable)
+                    self.reader._varlist.index(variable)
                 )
             self.metadata.append(variable_meta)
 
