@@ -1,7 +1,7 @@
 """Unittests for the collect_stata.read_stata module"""
 import pathlib
 import unittest
-from typing import Dict, List, Union
+from typing import Dict, List
 from unittest.mock import patch
 
 import numpy
@@ -9,6 +9,7 @@ import pandas
 from deepdiff import DeepDiff
 
 from collect_stata.read_stata import StataDataExtractor
+from collect_stata.types import Variable
 
 
 class MockedStataReader:
@@ -27,8 +28,10 @@ class MockedStataReader:
         """Control what variable labels are ingested during a test."""
         return {"variable_name": "variable_label"}
 
+    lbllist: List[str] = ["variable_name"]
+
     @staticmethod
-    def expected_metadata(dataset_name) -> List[Dict[str, Union[str, Dict[str, List]]]]:
+    def expected_metadata(dataset_name: str) -> List[Variable]:
         """Give the full metadata set which should be expected as test result."""
         return [
             {
@@ -47,7 +50,7 @@ class MockedStataReader:
 class TestMetadataFunctions(unittest.TestCase):
     """Test functionality related to Metadata extraction."""
 
-    def test_get_variable_metadata(self):
+    def test_get_variable_metadata(self) -> None:
         """ Do we get desired metadata from the method?
 
         get_variable_metadata should return a list with a dictionary for every

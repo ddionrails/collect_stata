@@ -67,27 +67,44 @@ class StataDataExtractor:
 
         variable_labels = self.reader.variable_labels()
         value_labels = self.reader.value_labels()
-        for variable in self.reader.varlist:
+        for variable, valuelabel_link in zip(self.reader.varlist, self.reader.lbllist):
             variable_meta: Variable = Variable()
             variable_meta["name"] = variable
             variable_meta["dataset"] = dataset
             variable_meta["label"] = variable_labels.get(variable, None)
             variable_meta["categories"] = {"values": [], "labels": []}
-            for value, label in value_labels.get(variable, dict()).items():
+            for value, label in value_labels.get(valuelabel_link, dict()).items():
                 # At the moment if a variable has value labels attached, it is
                 # interpretet as being on a categorical scale.
-                variable_meta["scale"] = "cat"
+                if value > 0 and label:
+                    variable_meta["scale"] = "cat"
+                #elif variable_meta.get("scale","") != "cat" and not label:
+                #   variable_meta["scale"] = "number"
 
-                variable_meta["categories"]["values"].append(value)
+                variable_meta["categories"]["values"].append(int(value))
                 variable_meta["categories"]["labels"].append(label)
+
+            variable_meta["categories"]["labels"] = self._sort_labels(
+                labels=variable_meta["categories"]["labels"],
+                values=variable_meta["categories"]["values"],
+            )
+            variable_meta["categories"]["values"] = sorted(
+                variable_meta["categories"]["values"]
+            )
 
             if "scale" not in variable_meta:
                 variable_meta["scale"] = self.get_variable_scale(
-                    self.reader.varlist.index(variable)
+                    self.reader._varlist.index(variable)
                 )
             self.metadata.append(variable_meta)
 
         return self.metadata
+
+    @staticmethod
+    def _sort_labels(values: List[int], labels: List[str]) -> List[str]:
+        """Sort a label list on the corresponding value."""
+        label_list = [label for _, label in sorted(zip(values, labels))]
+        return label_list
 
     def get_variable_scale(self, variable_index: int) -> str:
         """Guess a variables scale.
