@@ -67,7 +67,7 @@ class StataDataExtractor:
 
         variable_labels = self.reader.variable_labels()
         value_labels = self.reader.value_labels()
-        for variable, valuelabel_link in zip(self.reader.varlist, self.reader.lbllist):
+        for variable, valuelabel_link in zip(self.reader._varlist, self.reader._lbllist):
             variable_meta: Variable = Variable()
             variable_meta["name"] = variable
             variable_meta["dataset"] = dataset
@@ -128,7 +128,7 @@ class StataDataExtractor:
             "This method uses a questionable way of determining a variables scale.",
             DeprecationWarning,
         )
-        variable_dtype = self.reader.dtyplist[variable_index]
+        variable_dtype = self.reader._dtyplist[variable_index]
         if is_numeric_dtype(variable_dtype):
             return "number"
         if variable_dtype == "object":
