@@ -206,7 +206,7 @@ def update_metadata(
     elif metadata and metadata_de:
         for main_variable, variable_de in zip(metadata, metadata_de):
             main_variable["label_de"] = variable_de["label"]
-            if main_variable["scale"] == "cat":
+            if main_variable.get("categories", {}).get("labels", []):
                 main_variable["categories"]["labels_de"] = variable_de["categories"][
                     "labels"
                 ]
