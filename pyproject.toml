@@ -1,0 +1,27 @@
+[tool.poetry]
+name = "collect-stata"
+version = "0.1.0"
+description = ""
+authors = ["hansendx <dhansen@diw.de>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "==19.3b0"
+jsonschema = "*"
+pre-commit = "*"
+pylint = "*"
+pyroma = "*"
+pytest = "*"
+pytest-cov = "*"
+deepdiff = "*"
+mypy = "*"
+bandit = "*"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
